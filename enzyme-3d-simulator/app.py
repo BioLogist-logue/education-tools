@@ -6,23 +6,22 @@ from stmol import showmol
 # 1. 페이지 설정
 st.set_page_config(page_title="BioLogue 3D Lab", page_icon="🧬", layout="wide")
 
-# 2. 디자인 CSS (다크모드 침공 완전 섬멸! 무지성 흰배경 난사!)
+# 2. 디자인 CSS (유령 드롭다운 메뉴까지 추적해서 하얗게 탈색!!!)
 st.markdown("""
     <style>
-    /* 전체 배경을 밝은 오프화이트로 강제 고정 */
+    /* 전체 배경 강제 오프화이트 */
     .stApp { background-color: #F8FAFC !important; }
     
-    /* 모든 글씨를 진한 남색/까만색으로 강제 고정 (vanish 막기) */
+    /* 기본 글씨 진한 남색 강제 고정 */
     html, body, p, h1, h2, h3, h4, h5, h6, span, div, label {
         color: #0F172A !important;
         font-family: 'Pretendard', sans-serif;
     }
     
-    /* 메인 제목 스타일 */
     .main-title { color: #0F172A !important; font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 5px; }
     .sub-title { text-align: center; color: #475569 !important; font-size: 1.1rem; margin-bottom: 2rem; }
     
-    /* 모바일 탭 좌우 스크롤 유지 */
+    /* 모바일 탭 스크롤 */
     .stTabs [data-baseweb="tab-list"] { 
         gap: 10px; justify-content: flex-start; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px;
     }
@@ -32,18 +31,27 @@ st.markdown("""
     }
     .stTabs [aria-selected="true"] { background-color: #20C997 !important; color: white !important; }
     
-    /* 까매진 입력창들(텍스트, 라디오, 셀렉트) 배경 무조건 흰색, 글씨 무조건 까맣게! */
+    /* 기본 입력창들 방어 */
     input, textarea, select { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
-    
-    /* 스트림릿 순정 위젯 다크모드 침공 완전 방어 */
-    div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
-    div[data-baseweb="select"] span { color: #0F172A !important; }
-    ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
     div[data-testid="stRadio"] p, div[data-testid="stRadio"] label { color: #0F172A !important; font-weight: 700; }
     div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] p { color: #0F172A !important; }
     div[data-testid="stSelectbox"] label, div[data-testid="stSelectbox"] p { color: #0F172A !important; }
     
-    /* 까매진 '개념 요약 보기' 버튼 배경 무조건 흰색, 글씨 무조건 까맣게! */
+    /* 💡 [최종 병기] 징글징글한 셀렉트박스 & 유령 드롭다운 메뉴 완벽 방어! */
+    div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; color: #0F172A !important; }
+    div[data-baseweb="select"] * { color: #0F172A !important; }
+    
+    /* 화면 밖에 뜨는 팝오버(Popover) 껍데기까지 타겟팅해서 무조건 하얗게! */
+    div[data-baseweb="popover"], div[data-baseweb="popover"] * { 
+        background-color: #FFFFFF !important; 
+        color: #0F172A !important; 
+    }
+    ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+    ul[data-baseweb="menu"] li { background-color: #FFFFFF !important; color: #0F172A !important; }
+    /* 목록에 마우스 올렸을 때 살짝 회색 되게 해서 가독성 업! */
+    ul[data-baseweb="menu"] li:hover { background-color: #F1F5F9 !important; }
+    
+    /* 버튼들 방어 */
     .stButton > button, div[data-testid="stBaseButton-secondary"] p {
         background-color: #FFFFFF !important;
         color: #0F172A !important;
@@ -52,7 +60,6 @@ st.markdown("""
         transition: all 0.2s;
     }
     
-    /* 개념 요약 박스 */
     .concept-box {
         background: #FFFFFF;
         padding: 20px;
@@ -64,7 +71,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 💡 PC/모바일 하이브리드 황금 높이 (550px)로 조정!
+# 💡 PC/모바일 하이브리드 황금 높이 (550px)
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     viewer.setStyle({'cartoon': {'color': 'spectrum'}})
@@ -117,7 +124,7 @@ with tab1:
         if target_pdb:
             render_molecule(target_pdb, is_preset=is_preset_mode)
 
-# --- 탭 2: 가상 결합 실험 (모바일 완전 적응형) ---
+# --- 탭 2: 가상 결합 실험 ---
 with tab2:
     st.markdown("### 🧪 효소-기질 결합 시뮬레이션 (자물쇠와 열쇠 모델)")
     
@@ -206,7 +213,6 @@ with tab2:
             let sub = document.getElementById('substrate');
             let stage = document.getElementById('sim-stage');
             
-            // 💡 화면 크기를 잰 다음 자동 계산!
             let stageWidth = stage.offsetWidth;
             let moveDist = stageWidth - 192; 
             
