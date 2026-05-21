@@ -6,18 +6,23 @@ from stmol import showmol
 # 1. 페이지 설정
 st.set_page_config(page_title="BioLogue 3D Lab", page_icon="🧬", layout="wide")
 
-# 2. 디자인 CSS (모바일 반응형 및 다크모드 방어 떡칠 완료!)
+# 2. 디자인 CSS (다크모드 침공 완전 섬멸! 무지성 흰배경 난사!)
 st.markdown("""
     <style>
-    .stApp { background-color: #F8FAFC; }
+    /* 전체 배경을 밝은 오프화이트로 강제 고정 */
+    .stApp { background-color: #F8FAFC !important; }
+    
+    /* 모든 글씨를 진한 남색/까만색으로 강제 고정 (vanish 막기) */
     html, body, p, h1, h2, h3, h4, h5, h6, span, div, label {
         color: #0F172A !important;
         font-family: 'Pretendard', sans-serif;
     }
+    
+    /* 메인 제목 스타일 */
     .main-title { color: #0F172A !important; font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 5px; }
     .sub-title { text-align: center; color: #475569 !important; font-size: 1.1rem; margin-bottom: 2rem; }
     
-    /* 💡 [수정] 모바일에서 탭이 잘리지 않고 좌우로 스크롤되게 만듦 */
+    /* 모바일 탭 좌우 스크롤 유지 */
     .stTabs [data-baseweb="tab-list"] { 
         gap: 10px; justify-content: flex-start; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px;
     }
@@ -27,11 +32,27 @@ st.markdown("""
     }
     .stTabs [aria-selected="true"] { background-color: #20C997 !important; color: white !important; }
     
-    /* 💡 [수정] 핸드폰 다크모드 때문에 셀렉트박스 까맣게 변하는 현상 강제 방어! */
-    div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
-    div[data-baseweb="select"] * { color: #0F172A !important; }
-    ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+    /* 까매진 입력창들(텍스트, 라디오, 셀렉트) 배경 무조건 흰색, 글씨 무조건 까맣게! */
+    input, textarea, select { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
     
+    /* 스트림릿 순정 위젯 다크모드 침공 완전 방어 */
+    div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
+    div[data-baseweb="select"] span { color: #0F172A !important; }
+    ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+    div[data-testid="stRadio"] p, div[data-testid="stRadio"] label { color: #0F172A !important; font-weight: 700; }
+    div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] p { color: #0F172A !important; }
+    div[data-testid="stSelectbox"] label, div[data-testid="stSelectbox"] p { color: #0F172A !important; }
+    
+    /* 까매진 '개념 요약 보기' 버튼 배경 무조건 흰색, 글씨 무조건 까맣게! */
+    .stButton > button, div[data-testid="stBaseButton-secondary"] p {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border: 1px solid #CBD5E1 !important;
+        font-weight: 700 !important;
+        transition: all 0.2s;
+    }
+    
+    /* 개념 요약 박스 */
     .concept-box {
         background: #FFFFFF;
         padding: 20px;
@@ -43,10 +64,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 💡 [수정] 화면 크기에 맞춰 100%로 유연하게 늘어나는 3D 렌더링 함수!
+# 💡 PC/모바일 하이브리드 황금 높이 (550px)로 조정!
 def render_molecule(pdb_id, is_preset=True):
-    # 가로를 "100%"로 설정해서 핸드폰 크기에 딱 맞춤
-    viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=400)
+    viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     viewer.setStyle({'cartoon': {'color': 'spectrum'}})
     viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
     
@@ -56,8 +76,7 @@ def render_molecule(pdb_id, is_preset=True):
         viewer.setStyle({'hetatm': True}, {'stick': {'colorscheme': 'JmolElements', 'radius': 0.3}})
     
     viewer.zoomTo()
-    # 출력할 때도 가로를 100%로 지정!
-    showmol(viewer, height=400, width="100%")
+    showmol(viewer, height=550, width="100%")
 
 st.markdown("<div class='main-title'>BioLogue 3D Lab</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 통해 효소의 원리를 마스터합니다.</div>", unsafe_allow_html=True)
@@ -100,9 +119,8 @@ with tab1:
 
 # --- 탭 2: 가상 결합 실험 (모바일 완전 적응형) ---
 with tab2:
-    st.markdown("### 🧪 효소-기질 결합 시뮬레이션")
+    st.markdown("### 🧪 효소-기질 결합 시뮬레이션 (자물쇠와 열쇠 모델)")
     
-    # 💡 [수정] 화면 너비를 자동 계산해서 튕기는 거리를 조절하는 똑똑한 JS 애니메이션!
     inline_virtual_lab = """
     <!DOCTYPE html>
     <html>
@@ -111,17 +129,14 @@ with tab2:
     <style>
       body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 10px; margin: 0; }
       
-      /* 모바일에서 버튼들이 줄바꿈되도록 flex-wrap 추가 */
       .controls { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 20px; background: #F8FAFC; padding: 15px; border-radius: 15px; border: 1px solid #E2E8F0; width: 100%; box-sizing: border-box; }
       .control-group { text-align: center; }
       .btn { padding: 8px 12px; margin: 3px; border: none; border-radius: 5px; background: #CBD5E1; cursor: pointer; font-weight: bold; color: #0F172A; transition: 0.2s; font-size: 0.9rem; }
       .btn.active-e { background: #20C997; color: white; }
       .btn.active-s { background: #EC4899; color: white; }
       
-      /* 무대 가로를 100%로 유연하게! */
       .stage { width: 100%; max-width: 600px; height: 220px; border: 2px dashed #94A3B8; border-radius: 15px; position: relative; overflow: hidden; background: #F8FAFC; margin-bottom: 20px; box-sizing: border-box; }
       
-      /* 효소와 기질 크기 약간 다이어트 */
       .enzyme { width: 130px; height: 130px; background: #20C997; border-radius: 20px; position: absolute; left: 10px; top: 45px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); }
       .active-site { width: 45px; height: 45px; background: #F8FAFC; margin-right: -1px; transition: 0.3s; }
       
@@ -191,9 +206,8 @@ with tab2:
             let sub = document.getElementById('substrate');
             let stage = document.getElementById('sim-stage');
             
-            // 💡 [수정] 화면 크기를 잰 다음, '기질'이 '효소'의 홈까지 딱 맞게 날아갈 거리를 자동 계산!
+            // 💡 화면 크기를 잰 다음 자동 계산!
             let stageWidth = stage.offsetWidth;
-            // 효소 우측 끝(10px+130px)부터 기질 좌측 시작점(stageWidth-10px-42px) 사이의 거리 계산
             let moveDist = stageWidth - 192; 
             
             sub.style.transform = 'translateX(-' + moveDist + 'px)'; 
@@ -209,7 +223,6 @@ with tab2:
                 } else {
                     document.getElementById('status').innerText = '❌ 결합 실패! 활성 부위와 입체 구조가 맞지 않습니다.';
                     document.getElementById('status').style.color = '#EF4444';
-                    // 튕겨나가는 거리도 비율에 맞게 계산!
                     sub.style.transform = 'translateX(-' + (moveDist - 40) + 'px) rotate(25deg)'; 
                 }
             }, 800);
@@ -219,7 +232,6 @@ with tab2:
     </html>
     """
     
-    # 💡 모바일에서 짤리지 않게 height를 넉넉하게 줌
     components.html(inline_virtual_lab, height=650)
 
 # 6. 관련 개념 보기/숨기기 (토글 기능)
