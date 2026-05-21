@@ -71,21 +71,27 @@ enzyme_presets = {
     "글루코키나제(Glucokinase) + 포도당 결합": "2H4F"
 }
 
-# 💡 하이브리드 3D 렌더링 함수 (모드에 따라 스타일 변형)
+# 💡 [긴급수정] 브라우저가 파업하지 못하게 더 강력한 렌더링 코드로 변경!
 def render_molecule(pdb_id, is_preset=True):
+    # 빈 도화지 생성
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width=800, height=600)
     
-    # 공통: 효소 단백질은 무지개색 만화 기법 + 반투명 구름 표면
-    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
+    # [핵심 변경] 전체 구조에 기본 스타일을 아주 명확하게 지정 (파업 방지)
+    # 1. 일단 무조건 'cartoon' 스타일로 전체를 그립니다.
+    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
+    
+    # 2. 효소 단백질 파트에 반투명 구름 표면을 입힙니다.
     viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
     
     if is_preset:
         # 추천 모드: 기질(리간드)을 눈에 확 띄는 핫핑크색 왕구슬로 강조!
-        viewer.setStyle({'ligand': True}, {'sphere': {'color': 'magenta', 'radius': 1.2}})
+        # [긴급수정] 'hetatm' (이종 원자) 선택자를 추가해서 기질을 더 확실하게 잡습니다.
+        viewer.setStyle({'hetatm': True}, {'sphere': {'color': 'magenta', 'radius': 1.2}})
     else:
-        # 자유 검색 모드: 어떤 분자가 올지 모르므로 표준 원소 색상의 스틱 형태로 유연하게 표현
-        viewer.setStyle({'ligand': True}, {'stick': {'colorscheme': 'JmolElements', 'radius': 0.3}})
+        # 자유 검색 모드: 표준 원소 색상의 스틱 형태로 표현
+        viewer.setStyle({'hetatm': True}, {'stick': {'colorscheme': 'JmolElements', 'radius': 0.3}})
     
+    # 3. 화면 크기에 딱 맞게 줌인 및 출력
     viewer.zoomTo()
     showmol(viewer, height=600, width=800)
 
