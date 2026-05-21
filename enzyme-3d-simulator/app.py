@@ -189,6 +189,29 @@ with tab2:
     # 내장형 HTML을 스트림릿 컴포넌트로 렌더링
     components.html(inline_virtual_lab, height=650)
 
-# 6. 푸터 및 블로그 링크
+# 6. 관련 개념 보기/숨기기 (토글 기능)
+st.write("") 
+col_btn1, col_btn2 = st.columns([1, 4])
+
+if 'show_concept' not in st.session_state:
+    st.session_state.show_concept = False
+
+def toggle_concept():
+    st.session_state.show_concept = not st.session_state.show_concept
+
+with col_btn1:
+    st.button("📖 개념 요약 보기", on_click=toggle_concept, use_container_width=True)
+
+if st.session_state.show_concept:
+    st.markdown(f"""
+        <div class='concept-box'>
+            <h3 style='color: #20C997 !important; margin-bottom:15px; font-weight:800;'>💡 학습 핵심 개념: 효소와 기질 특이성</h3>
+            <p><b>1. 활성 부위(Active Site):</b> 효소 단백질의 거대한 입체 구조 중에서 기질과 실제로 맞물려 결합하는 특정한 홈(부위)입니다.</p>
+            <p><b>2. 기질 특이성:</b> 효소는 자신의 활성 부위와 삼차원 입체 구조가 딱 맞는 <b>특정 기질하고만 결합하여 반응을 촉매</b>합니다.</p>
+            <p><b>3. 현재 관찰 중인 구조:</b> <b>{selected_name}</b> 데이터를 분석하고 있습니다.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+# 7. 푸터 및 블로그 링크
 st.sidebar.markdown("<br><br><a href='https://blog.naver.com' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿 BioLogue 블로그 가기</a>", unsafe_allow_html=True)
 st.markdown("<br><hr><center>© 2026 BioLogue Lab. Designed for AI Edutech Science Class.</center>", unsafe_allow_html=True)
