@@ -7,7 +7,7 @@ from stmol import showmol
 # [1] 페이지 기본 설정
 # ==========================================
 # 웹 브라우저 탭에 표시될 제목과 아이콘, 레이아웃(wide: 넓게 쓰기)을 설정합니다.
-st.set_page_config(page_title="BioLogue 3D Lab", page_icon="🧬", layout="wide")
+st.set_page_config(page_title="biologue_ 3D Lab", page_icon="🧬", layout="wide")
 
 
 # ==========================================
