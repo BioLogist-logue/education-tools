@@ -6,7 +6,7 @@ from stmol import showmol
 # 1. 페이지 설정
 st.set_page_config(page_title="BioLogue 3D Lab", page_icon="🧬", layout="wide")
 
-# 2. 디자인 CSS
+# 2. 디자인 CSS (모바일 반응형 및 다크모드 방어 떡칠 완료!)
 st.markdown("""
     <style>
     .stApp { background-color: #F8FAFC; }
@@ -14,17 +14,27 @@ st.markdown("""
         color: #0F172A !important;
         font-family: 'Pretendard', sans-serif;
     }
-    .main-title { color: #0F172A !important; font-size: 3rem; font-weight: 800; text-align: center; margin-bottom: 5px; }
-    .sub-title { text-align: center; color: #475569 !important; font-size: 1.2rem; margin-bottom: 2rem; }
-    .stTabs [data-baseweb="tab-list"] { gap: 20px; justify-content: center; }
+    .main-title { color: #0F172A !important; font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 5px; }
+    .sub-title { text-align: center; color: #475569 !important; font-size: 1.1rem; margin-bottom: 2rem; }
+    
+    /* 💡 [수정] 모바일에서 탭이 잘리지 않고 좌우로 스크롤되게 만듦 */
+    .stTabs [data-baseweb="tab-list"] { 
+        gap: 10px; justify-content: flex-start; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px;
+    }
     .stTabs [data-baseweb="tab"] { 
         height: 50px; background-color: #FFFFFF; border-radius: 10px; 
-        font-weight: 700; border: 1px solid #E2E8F0; padding: 0 30px;
+        font-weight: 700; border: 1px solid #E2E8F0; padding: 0 20px;
     }
     .stTabs [aria-selected="true"] { background-color: #20C997 !important; color: white !important; }
+    
+    /* 💡 [수정] 핸드폰 다크모드 때문에 셀렉트박스 까맣게 변하는 현상 강제 방어! */
+    div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
+    div[data-baseweb="select"] * { color: #0F172A !important; }
+    ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+    
     .concept-box {
         background: #FFFFFF;
-        padding: 25px;
+        padding: 20px;
         border-radius: 15px;
         border-left: 5px solid #20C997;
         margin-top: 20px;
@@ -33,9 +43,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 💡 함수 선언
+# 💡 [수정] 화면 크기에 맞춰 100%로 유연하게 늘어나는 3D 렌더링 함수!
 def render_molecule(pdb_id, is_preset=True):
-    viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width=800, height=600)
+    # 가로를 "100%"로 설정해서 핸드폰 크기에 딱 맞춤
+    viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=400)
     viewer.setStyle({'cartoon': {'color': 'spectrum'}})
     viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
     
@@ -45,7 +56,8 @@ def render_molecule(pdb_id, is_preset=True):
         viewer.setStyle({'hetatm': True}, {'stick': {'colorscheme': 'JmolElements', 'radius': 0.3}})
     
     viewer.zoomTo()
-    showmol(viewer, height=600, width=800)
+    # 출력할 때도 가로를 100%로 지정!
+    showmol(viewer, height=400, width="100%")
 
 st.markdown("<div class='main-title'>BioLogue 3D Lab</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 통해 효소의 원리를 마스터합니다.</div>", unsafe_allow_html=True)
@@ -53,7 +65,6 @@ st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 
 # 탭 구성
 tab1, tab2 = st.tabs(["🔍 실제 구조 관찰 (PDB)", "🧪 가상 결합 실험 (Concept)"])
 
-# 💡 [에러 수정] 선택된 효소 이름을 담을 변수를 미리 만들어 둡니다!
 selected_name = "미지정"
 
 # --- 탭 1: 실제 PDB 구조 관찰 ---
@@ -74,68 +85,74 @@ with tab1:
             sel = st.selectbox("효소 선택", list(enzyme_presets.keys()))
             target_pdb = enzyme_presets[sel]
             is_preset_mode = True
-            selected_name = sel # 💡 [에러 수정] 여기서 이름을 변수에 쏙 넣어줍니다!
+            selected_name = sel
             st.info("💡 기질이 결합된 상태를 관찰합니다.")
         else:
             user_input = st.text_input("RCSB PDB ID 4자리를 입력하세요 (예: 1QQW):", "1QQW")
             target_pdb = user_input.strip().upper()
             is_preset_mode = False
-            selected_name = f"사용자 정의 검색 ({target_pdb})" # 💡 [에러 수정] 여기서도 이름을 넣어줍니다!
-            
-            # 💡 [링크 수정] 괄호 안에 주소를 찰떡같이 붙여서 다시 클릭되게 만들었습니다!
+            selected_name = f"사용자 정의 검색 ({target_pdb})"
             st.info("🌐 [RCSB PDB 공식 사이트](https://www.rcsb.org/)에서 4자리 코드를 찾아 입력하세요.")
             
     with col2:
         if target_pdb:
             render_molecule(target_pdb, is_preset=is_preset_mode)
 
-# --- 탭 2: 가상 결합 실험 ---
+# --- 탭 2: 가상 결합 실험 (모바일 완전 적응형) ---
 with tab2:
-    st.markdown("### 🧪 효소-기질 결합 시뮬레이션 (자물쇠와 열쇠 모델)")
+    st.markdown("### 🧪 효소-기질 결합 시뮬레이션")
     
+    # 💡 [수정] 화면 너비를 자동 계산해서 튕기는 거리를 조절하는 똑똑한 JS 애니메이션!
     inline_virtual_lab = """
     <!DOCTYPE html>
     <html>
     <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 20px; margin: 0; }
-      .controls { display: flex; gap: 40px; margin-bottom: 20px; background: #F8FAFC; padding: 20px; border-radius: 15px; border: 1px solid #E2E8F0; }
-      .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 5px; background: #CBD5E1; cursor: pointer; font-weight: bold; color: #0F172A; transition: 0.2s; }
+      body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 10px; margin: 0; }
+      
+      /* 모바일에서 버튼들이 줄바꿈되도록 flex-wrap 추가 */
+      .controls { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-bottom: 20px; background: #F8FAFC; padding: 15px; border-radius: 15px; border: 1px solid #E2E8F0; width: 100%; box-sizing: border-box; }
+      .control-group { text-align: center; }
+      .btn { padding: 8px 12px; margin: 3px; border: none; border-radius: 5px; background: #CBD5E1; cursor: pointer; font-weight: bold; color: #0F172A; transition: 0.2s; font-size: 0.9rem; }
       .btn.active-e { background: #20C997; color: white; }
       .btn.active-s { background: #EC4899; color: white; }
-      .stage { width: 500px; height: 300px; border: 2px dashed #94A3B8; border-radius: 15px; position: relative; overflow: hidden; background: #F8FAFC; margin-bottom: 20px; }
       
-      .enzyme { width: 180px; height: 180px; background: #20C997; border-radius: 20px; position: absolute; left: 50px; top: 60px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); }
-      .active-site { width: 60px; height: 60px; background: #F8FAFC; margin-right: -1px; transition: 0.3s; }
+      /* 무대 가로를 100%로 유연하게! */
+      .stage { width: 100%; max-width: 600px; height: 220px; border: 2px dashed #94A3B8; border-radius: 15px; position: relative; overflow: hidden; background: #F8FAFC; margin-bottom: 20px; box-sizing: border-box; }
       
-      .substrate { width: 56px; height: 56px; background: #EC4899; position: absolute; right: 50px; top: 122px; transition: all 0.8s ease-in-out; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
+      /* 효소와 기질 크기 약간 다이어트 */
+      .enzyme { width: 130px; height: 130px; background: #20C997; border-radius: 20px; position: absolute; left: 10px; top: 45px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); }
+      .active-site { width: 45px; height: 45px; background: #F8FAFC; margin-right: -1px; transition: 0.3s; }
+      
+      .substrate { width: 42px; height: 42px; background: #EC4899; position: absolute; right: 10px; top: 89px; transition: all 0.8s ease-in-out; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 10; }
       
       .shape-triangle { clip-path: polygon(100% 50%, 0 0, 0 100%); }
       .shape-square { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-      .shape-circle { border-radius: 50%; width: 58px; height: 58px; }
+      .shape-circle { border-radius: 50%; width: 44px; height: 44px; }
       
-      .action-btn { background: #0F172A; color: white; padding: 15px 40px; font-size: 1.2rem; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      .action-btn { background: #0F172A; color: white; padding: 12px 30px; font-size: 1.1rem; border-radius: 30px; border: none; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px; }
       .action-btn:hover { background: #334155; }
-      #status { margin-top: 15px; font-size: 1.2rem; font-weight: bold; color: #475569; }
+      #status { font-size: 1rem; font-weight: bold; color: #475569; text-align: center; min-height: 48px; }
     </style>
     </head>
     <body>
       <div class="controls">
-        <div>
-          <h4 style="margin-top:0;">1. 효소 (활성 부위 모양)</h4>
-          <button class="btn active-e" id="e-triangle" onclick="setEnzyme('triangle')">세모 홈</button>
-          <button class="btn" id="e-square" onclick="setEnzyme('square')">네모 홈</button>
-          <button class="btn" id="e-circle" onclick="setEnzyme('circle')">동그란 홈</button>
+        <div class="control-group">
+          <h4 style="margin:0 0 10px 0; font-size: 1rem;">1. 효소 (활성 부위)</h4>
+          <button class="btn active-e" id="e-triangle" onclick="setEnzyme('triangle')">세모</button>
+          <button class="btn" id="e-square" onclick="setEnzyme('square')">네모</button>
+          <button class="btn" id="e-circle" onclick="setEnzyme('circle')">동그라미</button>
         </div>
-        <div>
-          <h4 style="margin-top:0;">2. 투입할 기질 모양</h4>
-          <button class="btn active-s" id="s-triangle" onclick="setSubstrate('triangle')">세모 기질</button>
-          <button class="btn" id="s-square" onclick="setSubstrate('square')">네모 기질</button>
-          <button class="btn" id="s-circle" onclick="setSubstrate('circle')">동그란 기질</button>
+        <div class="control-group">
+          <h4 style="margin:0 0 10px 0; font-size: 1rem;">2. 기질 (투입 모양)</h4>
+          <button class="btn active-s" id="s-triangle" onclick="setSubstrate('triangle')">세모</button>
+          <button class="btn" id="s-square" onclick="setSubstrate('square')">네모</button>
+          <button class="btn" id="s-circle" onclick="setSubstrate('circle')">동그라미</button>
         </div>
       </div>
       
-      <div class="stage">
+      <div class="stage" id="sim-stage">
         <div class="enzyme"><div id="activeSite" class="active-site shape-triangle"></div></div>
         <div id="substrate" class="substrate shape-triangle"></div>
       </div>
@@ -172,7 +189,14 @@ with tab2:
         
         function react() {
             let sub = document.getElementById('substrate');
-            sub.style.transform = 'translateX(-212px)'; 
+            let stage = document.getElementById('sim-stage');
+            
+            // 💡 [수정] 화면 크기를 잰 다음, '기질'이 '효소'의 홈까지 딱 맞게 날아갈 거리를 자동 계산!
+            let stageWidth = stage.offsetWidth;
+            // 효소 우측 끝(10px+130px)부터 기질 좌측 시작점(stageWidth-10px-42px) 사이의 거리 계산
+            let moveDist = stageWidth - 192; 
+            
+            sub.style.transform = 'translateX(-' + moveDist + 'px)'; 
             
             setTimeout(() => {
                 if(eShape === sShape) {
@@ -185,7 +209,8 @@ with tab2:
                 } else {
                     document.getElementById('status').innerText = '❌ 결합 실패! 활성 부위와 입체 구조가 맞지 않습니다.';
                     document.getElementById('status').style.color = '#EF4444';
-                    sub.style.transform = 'translateX(-180px) rotate(25deg)'; 
+                    // 튕겨나가는 거리도 비율에 맞게 계산!
+                    sub.style.transform = 'translateX(-' + (moveDist - 40) + 'px) rotate(25deg)'; 
                 }
             }, 800);
         }
@@ -194,6 +219,7 @@ with tab2:
     </html>
     """
     
+    # 💡 모바일에서 짤리지 않게 height를 넉넉하게 줌
     components.html(inline_virtual_lab, height=650)
 
 # 6. 관련 개념 보기/숨기기 (토글 기능)
