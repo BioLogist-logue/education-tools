@@ -1,3 +1,5 @@
 streamlit
 py3Dmol
 stmol
+ipywidgets
+ipython_genutils
