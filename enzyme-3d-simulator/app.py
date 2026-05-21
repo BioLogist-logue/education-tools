@@ -22,10 +22,18 @@ st.markdown("""
         font-weight: 700; border: 1px solid #E2E8F0; padding: 0 30px;
     }
     .stTabs [aria-selected="true"] { background-color: #20C997 !important; color: white !important; }
+    .concept-box {
+        background: #FFFFFF;
+        padding: 25px;
+        border-radius: 15px;
+        border-left: 5px solid #20C997;
+        margin-top: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# 💡 [위치 수정] 함수는 무조건 위에서 미리 선언해 두어야 합니다!
+# 💡 함수 선언
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width=800, height=600)
     viewer.setStyle({'cartoon': {'color': 'spectrum'}})
@@ -45,6 +53,9 @@ st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 
 # 탭 구성
 tab1, tab2 = st.tabs(["🔍 실제 구조 관찰 (PDB)", "🧪 가상 결합 실험 (Concept)"])
 
+# 💡 [에러 수정] 선택된 효소 이름을 담을 변수를 미리 만들어 둡니다!
+selected_name = "미지정"
+
 # --- 탭 1: 실제 PDB 구조 관찰 ---
 with tab1:
     col1, col2 = st.columns([1, 3])
@@ -59,28 +70,29 @@ with tab1:
         st.markdown("### 🔬 관찰 설정")
         mode = st.radio("모드 선택", ["추천 복합체", "직접 검색"], horizontal=True)
         
-        # [수정 완료] 들여쓰기를 완벽하게 맞추고, is_preset_mode 변수를 추가했습니다.
         if mode == "추천 복합체":
             sel = st.selectbox("효소 선택", list(enzyme_presets.keys()))
             target_pdb = enzyme_presets[sel]
             is_preset_mode = True
+            selected_name = sel # 💡 [에러 수정] 여기서 이름을 변수에 쏙 넣어줍니다!
             st.info("💡 기질이 결합된 상태를 관찰합니다.")
         else:
             user_input = st.text_input("RCSB PDB ID 4자리를 입력하세요 (예: 1QQW):", "1QQW")
             target_pdb = user_input.strip().upper()
             is_preset_mode = False
-            st.info("🌐 [RCSB PDB 공식 사이트]에서 4자리 코드를 찾아 입력하세요.")
+            selected_name = f"사용자 정의 검색 ({target_pdb})" # 💡 [에러 수정] 여기서도 이름을 넣어줍니다!
+            
+            # 💡 [링크 수정] 괄호 안에 주소를 찰떡같이 붙여서 다시 클릭되게 만들었습니다!
+            st.info("🌐 [RCSB PDB 공식 사이트](https://www.rcsb.org/)에서 4자리 코드를 찾아 입력하세요.")
             
     with col2:
-        # [수정 완료] 함수를 선언만 하지 않고, 드디어 여기서 "실행"시킵니다!
         if target_pdb:
             render_molecule(target_pdb, is_preset=is_preset_mode)
 
-# --- 탭 2: 가상 결합 실험 (자체 내장형 HTML/JS로 404 에러 영구 차단!) ---
+# --- 탭 2: 가상 결합 실험 ---
 with tab2:
     st.markdown("### 🧪 효소-기질 결합 시뮬레이션 (자물쇠와 열쇠 모델)")
     
-    # 💡 404 에러가 나지 않도록 코드를 스트림릿 안에 100% 내장했습니다.
     inline_virtual_lab = """
     <!DOCTYPE html>
     <html>
@@ -93,14 +105,11 @@ with tab2:
       .btn.active-s { background: #EC4899; color: white; }
       .stage { width: 500px; height: 300px; border: 2px dashed #94A3B8; border-radius: 15px; position: relative; overflow: hidden; background: #F8FAFC; margin-bottom: 20px; }
       
-      /* 효소 디자인 */
       .enzyme { width: 180px; height: 180px; background: #20C997; border-radius: 20px; position: absolute; left: 50px; top: 60px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 5px 5px 15px rgba(0,0,0,0.1); }
       .active-site { width: 60px; height: 60px; background: #F8FAFC; margin-right: -1px; transition: 0.3s; }
       
-      /* 기질 디자인 */
       .substrate { width: 56px; height: 56px; background: #EC4899; position: absolute; right: 50px; top: 122px; transition: all 0.8s ease-in-out; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
       
-      /* 도형 모양 CSS (클립패스 활용) */
       .shape-triangle { clip-path: polygon(100% 50%, 0 0, 0 100%); }
       .shape-square { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
       .shape-circle { border-radius: 50%; width: 58px; height: 58px; }
@@ -163,7 +172,6 @@ with tab2:
         
         function react() {
             let sub = document.getElementById('substrate');
-            // 기질이 효소 쪽으로 이동
             sub.style.transform = 'translateX(-212px)'; 
             
             setTimeout(() => {
@@ -171,13 +179,13 @@ with tab2:
                     document.getElementById('status').innerText = '✨ 결합 성공! 효소-기질 복합체가 형성되었습니다.';
                     document.getElementById('status').style.color = '#20C997';
                     setTimeout(() => {
-                        sub.style.opacity = '0'; // 생성물로 변환되어 사라짐
+                        sub.style.opacity = '0';
                         document.getElementById('status').innerText = '⚗️ 반응 완료: 기질이 생성물로 쪼개져 방출되었습니다.';
                     }, 1000);
                 } else {
                     document.getElementById('status').innerText = '❌ 결합 실패! 활성 부위와 입체 구조가 맞지 않습니다.';
                     document.getElementById('status').style.color = '#EF4444';
-                    sub.style.transform = 'translateX(-180px) rotate(25deg)'; // 튕겨나감
+                    sub.style.transform = 'translateX(-180px) rotate(25deg)'; 
                 }
             }, 800);
         }
@@ -186,7 +194,6 @@ with tab2:
     </html>
     """
     
-    # 내장형 HTML을 스트림릿 컴포넌트로 렌더링
     components.html(inline_virtual_lab, height=650)
 
 # 6. 관련 개념 보기/숨기기 (토글 기능)
