@@ -133,7 +133,7 @@ with tab1:
             target_pdb = enzyme_presets[sel]
             is_preset_mode = True
             selected_name = sel
-            st.info("💡 기질이 결합된 상태를 관찰합니다.")
+            st.info("💡 기질이 결합된 상태를 관찰합니다. 구형 공간채움모형은 기질을 나타냅니다.")
         else:
             user_input = st.text_input("RCSB PDB ID 4자리를 입력하세요 (예: 1HEW):", "1HEW")
             target_pdb = user_input.strip().upper()
