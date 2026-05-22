@@ -80,16 +80,15 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 효소 복합체(단백질): 툰(Cartoon) 리본 모형으로 설정
-    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
+    # 1. 튕김(철사줄) 방지를 위해 일단 전체를 무조건 Cartoon(리본)으로 렌더링합니다.
+    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
     
-    # 2. 리간드(기질): 공간채움모형(Spacefill -> sphere)으로 설정
+    # 2. 기질(리간드)만 콕 집어서 공간채움(Sphere) 모형을 '추가(addStyle)' 합니다!
+    # setStyle을 다시 쓰면 1번의 툰 모형이 지워지므로, 반드시 addStyle을 써서 덧씌워야 합니다.
     if is_preset:
-        # 추천 모드: 예시 복합체일 때 리간드를 핫핑크색(magenta) 공간채움모형으로 강조
-        viewer.setStyle({'hetatm': True}, {'sphere': {'color': 'magenta'}})
+        viewer.addStyle({'hetatm': True}, {'sphere': {'color': 'magenta'}})
     else:
-        # 직접 검색 모드: 사용자가 입력한 PDB일 때 리간드를 표준 원소 화학 색상 공간채움모형으로 표현
-        viewer.setStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
+        viewer.addStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
