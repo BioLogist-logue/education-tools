@@ -80,22 +80,15 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 효소 단백질 폴리머: Ball and Stick (막대와 공) 모형
-    # 얇은 막대(stick: 0.15)와 작은 공(sphere: 0.3)을 겹쳐서 고전적인 Ball and Stick을 구현합니다.
-    viewer.setStyle({'protein': True}, {
-        'stick': {'radius': 0.15, 'color': 'spectrum'},
-        'sphere': {'radius': 0.3, 'color': 'spectrum'}
-    })
+    # 1. 효소 복합체(단백질): 툰(Cartoon) 리본 모형으로 설정
+    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
     
-    # viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
-    
-    # 2. 기질(리간드): Spacefill (구형 채움) 모형
-    # radius 값을 따로 지정하지 않으면 기본 반데르발스 반지름으로 꽉 차게(Spacefill) 렌더링됩니다.
+    # 2. 리간드(기질): 공간채움모형(Spacefill -> sphere)으로 설정
     if is_preset:
-        # 추천 모드: 기질을 눈에 확 띄는 자홍색(magenta) 스페이스필로 표현
+        # 추천 모드: 예시 복합체일 때 리간드를 핫핑크색(magenta) 공간채움모형으로 강조
         viewer.setStyle({'hetatm': True}, {'sphere': {'color': 'magenta'}})
     else:
-        # 자유 검색 모드: 기질을 실제 원소 화학 색상(JmolElements)의 스페이스필로 표현
+        # 직접 검색 모드: 사용자가 입력한 PDB일 때 리간드를 표준 원소 화학 색상 공간채움모형으로 표현
         viewer.setStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
     
     viewer.zoomTo()
