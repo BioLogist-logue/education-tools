@@ -16,18 +16,31 @@ st.set_page_config(page_title="biologue_ 3D Lab", page_icon="🧬", layout="wide
 # 💡 수정 팁: 폰트 색상(#0F172A), 포인트 색상(#20C997) 등을 바꾸고 싶을 때 여기서 수정하세요.
 st.markdown("""
     <style>
-    /* 1. 전체 배경 및 기본 텍스트 강제 설정 (다크모드 방어) */
+    /* 전체 배경 및 기본 텍스트 강제 설정 */
     .stApp { background-color: #F8FAFC !important; }
     html, body, p, h1, h2, h3, h4, h5, h6, span, div, label {
         color: #0F172A !important;
         font-family: 'Pretendard', sans-serif;
     }
     
-    /* 2. 메인 타이틀 및 서브 타이틀 디자인 */
+    /* 💡 [긴급수정] 모바일 상단 햄버거 메뉴(헤더) 완벽 방어! */
+    header[data-testid="stHeader"] { background-color: #F8FAFC !important; }
+    header[data-testid="stHeader"] button, header[data-testid="stHeader"] svg { 
+        color: #0F172A !important; 
+        fill: #0F172A !important; 
+    }
+    
+    /* 💡 [긴급수정] 사이드바 배경 완벽 하얗게 고정! (블로그 링크 구출) */
+    [data-testid="stSidebar"], [data-testid="stSidebar"] > div:first-child {
+        background-color: #FFFFFF !important;
+    }
+    [data-testid="stSidebarNav"] { background-color: #FFFFFF !important; }
+    
+    /* 메인 타이틀 및 서브 타이틀 디자인 */
     .main-title { color: #0F172A !important; font-size: 2.5rem; font-weight: 800; text-align: center; margin-bottom: 5px; }
     .sub-title { text-align: center; color: #475569 !important; font-size: 1.1rem; margin-bottom: 2rem; }
     
-    /* 3. 모바일 환경을 위한 탭(Tab) 메뉴 가로 스크롤 설정 */
+    /* 모바일 환경을 위한 탭(Tab) 메뉴 가로 스크롤 설정 */
     .stTabs [data-baseweb="tab-list"] { 
         gap: 10px; justify-content: flex-start; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; padding-bottom: 5px;
     }
@@ -37,21 +50,21 @@ st.markdown("""
     }
     .stTabs [aria-selected="true"] { background-color: #20C997 !important; color: white !important; }
     
-    /* 4. 각종 입력창 및 선택창 다크모드 무력화 (무조건 흰배경/검은글씨) */
+    /* 입력창 및 라디오 버튼 다크모드 무력화 */
     input, textarea, select { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
     div[data-testid="stRadio"] p, div[data-testid="stRadio"] label { color: #0F172A !important; font-weight: 700; }
     div[data-testid="stTextInput"] label, div[data-testid="stTextInput"] p { color: #0F172A !important; }
     div[data-testid="stSelectbox"] label, div[data-testid="stSelectbox"] p { color: #0F172A !important; }
     
-    /* 5. 드롭다운 메뉴(셀렉트박스)와 팝오버(유령메뉴) 완벽 하얗게 탈색 */
+    /* 드롭다운 메뉴와 팝오버 껍데기 하얗게 고정 */
     div[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #CBD5E1 !important; color: #0F172A !important; }
     div[data-baseweb="select"] * { color: #0F172A !important; }
     div[data-baseweb="popover"], div[data-baseweb="popover"] * { background-color: #FFFFFF !important; color: #0F172A !important; }
     ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
     ul[data-baseweb="menu"] li { background-color: #FFFFFF !important; color: #0F172A !important; }
-    ul[data-baseweb="menu"] li:hover { background-color: #F1F5F9 !important; } /* 마우스 오버 시 살짝 회색 */
+    ul[data-baseweb="menu"] li:hover { background-color: #F1F5F9 !important; }
     
-    /* 6. 버튼 디자인 (개념 요약 보기 버튼 등) */
+    /* 개념 요약 보기 버튼 디자인 */
     .stButton > button, div[data-testid="stBaseButton-secondary"] p {
         background-color: #FFFFFF !important;
         color: #0F172A !important;
@@ -60,7 +73,7 @@ st.markdown("""
         transition: all 0.2s;
     }
     
-    /* 7. 개념 요약 박스 디자인 */
+    /* 개념 요약 박스 디자인 */
     .concept-box {
         background: #FFFFFF;
         padding: 20px;
@@ -307,6 +320,16 @@ if st.session_state.show_concept:
     """, unsafe_allow_html=True)
 
 # 💡 수정 팁: 사이드바 블로그 주소나 하단 저작권 문구를 바꾸려면 여기를 수정하세요.
-st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#000000; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿블로그 바로가기</a>", unsafe_allow_html=True)
-st.sidebar.markdown("<br><br><a href='https://www.instagram.com/biologist_logue' target='_blank' style='color:#000000; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻인스타그램 바로가기</a>", unsafe_allow_html=True)
+st.sidebar.markdown("""
+    <br><br>
+    <div style='background-color:#F1F5F9; padding:15px; border-radius:10px; text-align:center; border: 1px solid #E2E8F0;'>
+        <a href='https://blog.naver.com/biologue_' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿 블로그 바로가기</a>
+    </div>
+""", unsafe_allow_html=True)
+st.sidebar.markdown("""
+    <br><br>
+    <div style='background-color:#F1F5F9; padding:15px; border-radius:10px; text-align:center; border: 1px solid #E2E8F0;'>
+        <a href='https://www.instagram.com/biologist_logue' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻인스타그램 바로가기</a>
+    </div>
+""", unsafe_allow_html=True)
 st.markdown("<br><hr><center>© 2026 All rights reserved by BioLogist. <biologue_ Lab></center>", unsafe_allow_html=True)
