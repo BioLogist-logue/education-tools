@@ -78,19 +78,25 @@ st.markdown("""
 # ==========================================
 # 💡 수정 팁: 3D 모형의 가로/세로 비율이나, 기질(핑크색)의 크기를 조절할 때 여기서 수정하세요.
 def render_molecule(pdb_id, is_preset=True):
-    # width="100%"로 모바일 대응, height=550으로 PC에서도 큼직하게 보이게 설정
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 효소 단백질 기본 스타일: 무지개색 카툰 + 반투명 흰색 구름 표면
-    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
-    viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
+    # 1. 효소 단백질 폴리머: Ball and Stick (막대와 공) 모형
+    # 얇은 막대(stick: 0.15)와 작은 공(sphere: 0.3)을 겹쳐서 고전적인 Ball and Stick을 구현합니다.
+    viewer.setStyle({'protein': True}, {
+        'stick': {'radius': 0.15, 'color': 'spectrum'},
+        'sphere': {'radius': 0.3, 'color': 'spectrum'}
+    })
     
+    # viewer.addSurface(py3Dmol.VDW, {'opacity': 0.25, 'color': 'white'}, {'protein': True})
+    
+    # 2. 기질(리간드): Spacefill (구형 채움) 모형
+    # radius 값을 따로 지정하지 않으면 기본 반데르발스 반지름으로 꽉 차게(Spacefill) 렌더링됩니다.
     if is_preset:
-        # 추천 모드: 기질을 눈에 띄는 자홍색(magenta) 왕구슬(radius: 1.2)로 표현
-        viewer.setStyle({'hetatm': True}, {'sphere': {'color': 'magenta', 'radius': 1.2}})
+        # 추천 모드: 기질을 눈에 확 띄는 자홍색(magenta) 스페이스필로 표현
+        viewer.setStyle({'hetatm': True}, {'sphere': {'color': 'magenta'}})
     else:
-        # 자유 검색 모드: 기질을 표준 화학 원소 색상의 얇은 막대(stick)로 표현
-        viewer.setStyle({'hetatm': True}, {'stick': {'colorscheme': 'JmolElements', 'radius': 0.3}})
+        # 자유 검색 모드: 기질을 실제 원소 화학 색상(JmolElements)의 스페이스필로 표현
+        viewer.setStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
@@ -99,11 +105,11 @@ def render_molecule(pdb_id, is_preset=True):
 # ==========================================
 # [4] 메인 UI 구성 (타이틀 및 탭)
 # ==========================================
-st.markdown("<div class='main-title'>BioLogue 3D Lab</div>", unsafe_allow_html=True)
+st.markdown("<div class='main-title'>biologue 3D Lab</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 통해 효소의 원리를 마스터합니다.</div>", unsafe_allow_html=True)
 
 # 2개의 탭 생성
-tab1, tab2 = st.tabs(["🔍 실제 구조 관찰 (PDB)", "🧪 가상 결합 실험 (Concept)"])
+tab1, tab2 = st.tabs(["🔍 실제 구조 관찰 (PDB)", "🧪 가상 결합 실험"])
 
 # 선택된 효소 이름을 저장할 전역 변수 초기화
 selected_name = "미지정"
@@ -117,8 +123,8 @@ with tab1:
     
     # 💡 수정 팁: 새로운 효소를 추가하고 싶다면 이 딕셔너리에 "이름": "PDB코드" 형식으로 추가하세요.
     enzyme_presets = {
-        "리소자임(Lysozyme) + 기질": "1HEW",
-        "글루코키나제(Glucokinase) + 포도당": "2H4F",
+        "아밀레이스 + 녹말(엿당)": "6Z8L",
+        "펩신 + 단백질(펩타이드)": "1PSA",
         "카탈레이스(Catalase)": "1QQW"
     }
     
@@ -134,7 +140,7 @@ with tab1:
             selected_name = sel
             st.info("💡 기질이 결합된 상태를 관찰합니다.")
         else:
-            user_input = st.text_input("RCSB PDB ID 4자리를 입력하세요 (예: 1QQW):", "1QQW")
+            user_input = st.text_input("RCSB PDB ID 4자리를 입력하세요 (예: 1HEW):", "1HEW")
             target_pdb = user_input.strip().upper()
             is_preset_mode = False
             selected_name = f"사용자 정의 검색 ({target_pdb})"
@@ -307,5 +313,5 @@ if st.session_state.show_concept:
     """, unsafe_allow_html=True)
 
 # 💡 수정 팁: 사이드바 블로그 주소나 하단 저작권 문구를 바꾸려면 여기를 수정하세요.
-st.sidebar.markdown("<br><br><a href='https://blog.naver.com' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿 BioLogue 블로그 가기</a>", unsafe_allow_html=True)
-st.markdown("<br><hr><center>© 2026 BioLogue Lab. Designed for AI Edutech Science Class.</center>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿 BioLogue 블로그 가기</a>", unsafe_allow_html=True)
+st.markdown("<br><hr><center>© 2026 All rights reserved by BioLogist. <biologue_ Lab></center>", unsafe_allow_html=True)
