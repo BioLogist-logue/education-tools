@@ -80,16 +80,16 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 단백질(효소)만 콕 집어서 Cartoon(리본) 모형으로 설정합니다.
-    # 이렇게 하면 지정되지 않은 찌꺼기(물 분자 등)는 아예 투명해져서 깔끔해집니다!
-    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
+    # 1. 에러 튕김 방지: 묻지도 따지지도 않고 일단 전체를 Cartoon(리본)으로 칠합니다.
+    # (단백질은 리본 모양이 되고, 리간드는 뼈대가 없어서 일단 투명하게 숨겨집니다.)
+    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
     
-    # 2. 기질(리간드)만 콕 집어서 Spacefill(구형 채움) 모형을 '추가(addStyle)' 합니다!
-    # hetatm(모든 이종원자) 대신 찌꺼기를 제외한 진짜 기질만 잡는 'ligand' 선택자를 썼습니다!
-    if is_preset:
-        viewer.addStyle({'ligand': True}, {'sphere': {'color': 'magenta'}})
-    else:
-        viewer.addStyle({'ligand': True}, {'sphere': {'colorscheme': 'JmolElements'}})
+    # 2. 기질 강조: 이종원자(hetatm, 즉 리간드)만 콕 집어서 Spacefill(sphere) 모형을 '덧칠(addStyle)' 합니다.
+    # 주인님이 캡처해주신 공식 사이트와 똑같이, 원소 고유의 색상(JmolElements)으로 꽉 채워 렌더링합니다!
+    viewer.addStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
+    
+    # 3. 찌꺼기 제거: 공간채움모형 때문에 시야를 가리는 '물 분자(HOH)' 찌꺼기들만 스타일을 없애 투명하게 지워버립니다.
+    viewer.setStyle({'resn': 'HOH'}, {})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
