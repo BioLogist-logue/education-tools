@@ -80,16 +80,18 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 에러 튕김 방지: 묻지도 따지지도 않고 일단 전체를 Cartoon(리본)으로 칠합니다.
-    # (단백질은 리본 모양이 되고, 리간드는 뼈대가 없어서 일단 투명하게 숨겨집니다.)
-    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
+    # 1. 뼈대(단백질)는 툰(Cartoon) 리본 모형으로 칠합니다.
+    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
     
-    # 2. 기질 강조: 이종원자(hetatm, 즉 리간드)만 콕 집어서 Spacefill(sphere) 모형을 '덧칠(addStyle)' 합니다.
-    # 주인님이 캡처해주신 공식 사이트와 똑같이, 원소 고유의 색상(JmolElements)으로 꽉 채워 렌더링합니다!
-    viewer.addStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
-    
-    # 3. 찌꺼기 제거: 공간채움모형 때문에 시야를 가리는 '물 분자(HOH)' 찌꺼기들만 스타일을 없애 투명하게 지워버립니다.
-    viewer.setStyle({'resn': 'HOH'}, {})
+    # 2. 기질(리간드)은 구형 채움(Spacefill = sphere)으로 덧칠(addStyle)합니다.
+    # 물(HOH, WAT) 찌꺼기는 빼고, 순수 기질(hetflag)만 선택하는 가장 확실한 명령어를 씁니다!
+    # 라이브러리를 뻗게 만들었던 색상표 코드를 빼고, 비워두어 기본 원소 색상이 자동 적용되게 합니다.
+    if is_preset:
+        # 추천 복합체는 눈에 확 띄는 핫핑크색(magenta) 스페이스필!
+        viewer.addStyle({'hetflag': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {'color': 'magenta'}})
+    else:
+        # 직접 검색은 올려주신 사진처럼 원소 고유의 색상(탄소, 산소, 질소 등)으로 꽉 채웁니다!
+        viewer.addStyle({'hetflag': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {}})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
