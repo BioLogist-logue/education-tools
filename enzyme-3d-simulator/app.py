@@ -112,7 +112,7 @@ def render_molecule(pdb_id, is_preset=True):
 # ==========================================
 # [4] 메인 UI 구성 (타이틀 및 탭)
 # ==========================================
-st.markdown("<div class='main-title'>biologue 3D Lab</div>", unsafe_allow_html=True)
+st.markdown("<div class='main-title'>biologue_3D Lab</div>", unsafe_allow_html=True)
 st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 통해 효소의 원리를 마스터합니다.</div>", unsafe_allow_html=True)
 
 # 2개의 탭 생성
