@@ -307,6 +307,6 @@ if st.session_state.show_concept:
     """, unsafe_allow_html=True)
 
 # 💡 수정 팁: 사이드바 블로그 주소나 하단 저작권 문구를 바꾸려면 여기를 수정하세요.
-st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿블로그 바로가기</a>", unsafe_allow_html=True)
-st.sidebar.markdown("<br><br><a href='https://www.instagram.com/biologist_logue' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻인스타그램 바로가기</a>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#000000; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿블로그 바로가기</a>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><a href='https://www.instagram.com/biologist_logue' target='_blank' style='color:#000000; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻인스타그램 바로가기</a>", unsafe_allow_html=True)
 st.markdown("<br><hr><center>© 2026 All rights reserved by BioLogist. <biologue_ Lab></center>", unsafe_allow_html=True)
