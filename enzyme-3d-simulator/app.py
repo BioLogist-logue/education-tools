@@ -116,7 +116,7 @@ st.markdown("<div class='main-title'>biologue 3D Lab</div>", unsafe_allow_html=T
 st.markdown("<div class='sub-title'>실제 분자 데이터와 가상 실험을 통해 효소의 원리를 마스터합니다.</div>", unsafe_allow_html=True)
 
 # 2개의 탭 생성
-tab1, tab2 = st.tabs(["🔍 실제 구조 관찰 (PDB)", "🧪 가상 결합 실험"])
+tab1, tab2 = st.tabs(["🔍 실제 구조 관찰", "🧪 가상 결합 실험"])
 
 # 선택된 효소 이름을 저장할 전역 변수 초기화
 selected_name = "미지정"
