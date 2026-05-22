@@ -80,18 +80,14 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 뼈대(단백질)는 툰(Cartoon) 리본 모형으로 칠합니다.
-    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
+    # 1. [핵심] 앞에 `{}`(전체 선택)를 넣어서 묻지도 따지지도 않고 모든 뼈대를 리본(Cartoon)으로 예쁘게 칠합니다!
+    viewer.setStyle({}, {'cartoon': {'color': 'spectrum'}})
     
-    # 2. 기질(리간드)은 구형 채움(Spacefill = sphere)으로 덧칠(addStyle)합니다.
-    # 물(HOH, WAT) 찌꺼기는 빼고, 순수 기질(hetflag)만 선택하는 가장 확실한 명령어를 씁니다!
-    # 라이브러리를 뻗게 만들었던 색상표 코드를 빼고, 비워두어 기본 원소 색상이 자동 적용되게 합니다.
+    # 2. 기질(리간드) 부분만 콕 집어서, 방금 칠한 리본을 벗겨내고 구형 채움(Sphere)으로 '덮어쓰기(setStyle)' 합니다!
     if is_preset:
-        # 추천 복합체는 눈에 확 띄는 핫핑크색(magenta) 스페이스필!
-        viewer.addStyle({'hetflag': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {'color': 'magenta'}})
+        viewer.setStyle({'hetatm': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {'color': 'magenta'}})
     else:
-        # 직접 검색은 올려주신 사진처럼 원소 고유의 색상(탄소, 산소, 질소 등)으로 꽉 채웁니다!
-        viewer.addStyle({'hetflag': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {}})
+        viewer.setStyle({'hetatm': True, 'not': {'resn': ['HOH', 'WAT']}}, {'sphere': {'colorscheme': 'JmolElements'}})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
@@ -308,5 +304,6 @@ if st.session_state.show_concept:
     """, unsafe_allow_html=True)
 
 # 💡 수정 팁: 사이드바 블로그 주소나 하단 저작권 문구를 바꾸려면 여기를 수정하세요.
-st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿 BioLogue 블로그 가기</a>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><a href='https://blog.naver.com/biologue_' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿블로그 바로가기</a>", unsafe_allow_html=True)
+st.sidebar.markdown("<br><br><a href='https://www.instagram.com/biologist_logue' target='_blank' style='color:#20C997; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻인스타그램 바로가기</a>", unsafe_allow_html=True)
 st.markdown("<br><hr><center>© 2026 All rights reserved by BioLogist. <biologue_ Lab></center>", unsafe_allow_html=True)
