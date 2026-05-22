@@ -80,15 +80,16 @@ st.markdown("""
 def render_molecule(pdb_id, is_preset=True):
     viewer = py3Dmol.view(query=f"pdb:{pdb_id}", width="100%", height=550) 
     
-    # 1. 튕김(철사줄) 방지를 위해 일단 전체를 무조건 Cartoon(리본)으로 렌더링합니다.
-    viewer.setStyle({'cartoon': {'color': 'spectrum'}})
+    # 1. 단백질(효소)만 콕 집어서 Cartoon(리본) 모형으로 설정합니다.
+    # 이렇게 하면 지정되지 않은 찌꺼기(물 분자 등)는 아예 투명해져서 깔끔해집니다!
+    viewer.setStyle({'protein': True}, {'cartoon': {'color': 'spectrum'}})
     
-    # 2. 기질(리간드)만 콕 집어서 공간채움(Sphere) 모형을 '추가(addStyle)' 합니다!
-    # setStyle을 다시 쓰면 1번의 툰 모형이 지워지므로, 반드시 addStyle을 써서 덧씌워야 합니다.
+    # 2. 기질(리간드)만 콕 집어서 Spacefill(구형 채움) 모형을 '추가(addStyle)' 합니다!
+    # hetatm(모든 이종원자) 대신 찌꺼기를 제외한 진짜 기질만 잡는 'ligand' 선택자를 썼습니다!
     if is_preset:
-        viewer.addStyle({'hetatm': True}, {'sphere': {'color': 'magenta'}})
+        viewer.addStyle({'ligand': True}, {'sphere': {'color': 'magenta'}})
     else:
-        viewer.addStyle({'hetatm': True}, {'sphere': {'colorscheme': 'JmolElements'}})
+        viewer.addStyle({'ligand': True}, {'sphere': {'colorscheme': 'JmolElements'}})
     
     viewer.zoomTo()
     showmol(viewer, height=550, width="100%")
