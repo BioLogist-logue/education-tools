@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioLogue: 과학 교육 인터랙티브 툴킷</title>
+    <style>
+        /* [CSS] 세련되고 미래지향적인 다크 모드 에듀테크 포털 스타일 */
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-title: #f8fafc;
+            --text-desc: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-title);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-content: center;
+        }
+
+        .portal-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* 대문 헤더 스타일 */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-desc);
+            font-size: 16px;
+        }
+
+        /* [핵심] 반응형 그리드 레이아웃 (화면 크기에 따라 카드 개수 자동 조절) */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        /* 바로가기 카드 스타일 */
+        .tool-card {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 25px;
+            text-decoration: none;
+            color: var(--text-title);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #334155;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 마우스 올렸을 때 역동적인 애니메이션 효과 */
+        .tool-card:hover {
+            background-color: var(--bg-card-hover);
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        .tool-content h3 {
+            margin: 0 0 12px 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-content p {
+            color: var(--text-desc);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 20px 0;
+        }
+
+        /* 카드 하단 바로가기 안내 선 */
+        .go-btn {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: auto;
+        }
+
+        .tool-card:hover .go-btn {
+            color: #60a5fa;
+        }
+
+        /* 카드 종류별 포인트 컬러 스티커 */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .badge-bio { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+    </style>
+</head>
+<body>
+
+<div class="portal-container">
+    <header>
+        <h1>🔬 Interactive Science Lab</h1>
+        <p>수업을 더 직관적으로, 데이터로 시각화하는 과학 실험실</p>
+    </header>
+
+    <main class="tools-grid">
+
+        <a href="./Cell-energy-synthesis/" class="tool-card">
+            <div class="tool-content">
+                <span class="badge badge-bio">세포와 물질대사</span>
+                <h3>🔋 세포 호흡 & 광합성</h3>
+                <p>포도당의 탄소(C) 흐름을 단계별로 실시간 추적하고 기질 수준 인산화 및 명반응 수치를 시각화합니다.</p>
+            </div>
+            <div class="go-btn">실험실 입장하기 →</div>
+        </a>
+
+        <a href="./enzyme-3d-simulator/" class="tool-card">
+            <div class="tool-content">
+                <span class="badge badge-bio">생명 시스템</span>
+                <h3>🧬 효소 활성화 시뮬레이터</h3>
+                <p>온도, pH 및 기질 농도 변화에 따른 효소의 반응 속도와 기질 결합 메커니즘을 동적으로 분석합니다.</p>
+            </div>
+            <div class="go-btn">실험실 입장하기 →</div>
+        </a>
+
+        <a href="./future-project-folder/" class="tool-card">
+            <div class="tool-content">
+                <span class="badge badge-chem">물질의 구성</span>
+                <h3>🧪 화학 반응식 밸런서</h3>
+                <p>반응물과 생성물의 계수를 맞추고, 질량 보존의 법칙을 분자 모형 렌더링으로 직관적으로 이해합니다.</p>
+            </div>
+            <div class="go-btn">실험실 입장하기 →</div>
+        </a>
+
+        </main>
+</div>
+
+</body>
+</html>
