@@ -15,6 +15,7 @@
             --accent-blue: #3b82f6;
             --accent-green: #10b981;
             --accent-purple: #8b5cf6;
+            --accent-gray: #64748b;
         }
 
         body {
@@ -24,7 +25,7 @@
             margin: 0;
             padding: 40px 20px;
             display: flex;
-            flex-content: center;
+            justify-content: center;
         }
 
         .portal-container {
@@ -124,6 +125,7 @@
         }
         .badge-bio { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
         .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+        .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -136,7 +138,7 @@
 
     <main class="tools-grid">
 
-        <a href="./Cell-energy-synthesis/" class="tool-card">
+        <a href="./Cell-energy-synthesis/" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="tool-content">
                 <span class="badge badge-bio">세포와 물질대사</span>
                 <h3>🔋 세포 호흡 & 광합성</h3>
@@ -145,7 +147,7 @@
             <div class="go-btn">실험실 입장하기 →</div>
         </a>
 
-        <a href="https://enzyme-3d-simulator.streamlit.app/" class="tool-card">
+        <a href="https://enzyme-3d-simulator.streamlit.app/" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="tool-content">
                 <span class="badge badge-bio">생명 시스템</span>
                 <h3>🧬 효소 활성화 시뮬레이터</h3>
@@ -154,7 +156,7 @@
             <div class="go-btn">실험실 입장하기 →</div>
         </a>
 
-        <a href="https://biologist-logue.github.io/cell-game/" class="tool-card">
+        <a href="https://biologist-logue.github.io/cell-game/" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="tool-content">
                 <span class="badge badge-chem">생명 시스템</span>
                 <h3>🧪 세포 구조 추리 게임</h3>
@@ -163,7 +165,34 @@
             <div class="go-btn">실험실 입장하기 →</div>
         </a>
 
-        </main>
+        <a href="./새로운-폴더명-여기에/" target="_blank" rel="noopener noreferrer" class="tool-card">
+            <div class="tool-content">
+                <span class="badge badge-bio">신규 프로젝트</span>
+                <h3>✨ 신규 인공지능/실험 툴</h3>
+                <p>주인님! 새로 준비하신 멋진 프로젝트의 링크(href), 제목, 세부 설명을 여기에 직접 채워 넣으시면 바로 작동합니다!</p>
+            </div>
+            <div class="go-btn">실험실 입장하기 →</div>
+        </a>
+
+        <a href="#" onclick="alert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+                <p>미래의 기발한 과학 교육용 시뮬레이터가 들어설 자리입니다. 콘텐츠가 생기면 잠금이 해제됩니다.</p>
+            </div>
+            <div class="go-btn" style="color: var(--text-muted);">준비 중...</div>
+        </a>
+
+        <a href="#" onclick="alert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+                <p>미래의 기발한 과학 교육용 시뮬레이터가 들어설 자리입니다. 콘텐츠가 생기면 잠금이 해제됩니다.</p>
+            </div>
+            <div class="go-btn" style="color: var(--text-muted);">준비 중...</div>
+        </a>
+
+    </main>
 </div>
 
 </body>
