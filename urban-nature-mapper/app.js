@@ -1,4 +1,4 @@
-// 1. 파이어베이스 설정 (주인님의 실제 설정값으로 채워주세요!)
+// 1. 파이어베이스 설정 완료! (주인님의 진짜 키값 이식 완료)
 const firebaseConfig = {
   apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
   authDomain: "urban-nature-mapper.firebaseapp.com",
@@ -12,7 +12,6 @@ const firebaseConfig = {
 // 파이어베이스 초기화
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// ❌ 이제 카드 등록이 필요한 storage 변수는 아예 쓰지 않습니다! 삭제 완료!
 
 // 마법의 사진 압축 및 글자(Base64 DataURL) 변환 함수
 function compressAndToBase64(file, maxWidth, quality) {
@@ -43,143 +42,132 @@ function compressAndToBase64(file, maxWidth, quality) {
     });
 }
 
-// 카카오맵 로딩 엘리먼트 생성
-const kakaoScript = document.createElement('script');
-kakaoScript.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695&autoload=false';
-kakaoScript.async = true;
-
-// ⭕ [수정된 핵심 포인트!] 자물쇠(onload)를 "먼저" 세팅해서 기다리게 합니다!
-kakaoScript.onload = () => {
-    kakao.maps.load(function() {
-        
-        // 2. 카카오 지도 초기화
-        const mapContainer = document.getElementById('map');
-        const mapOption = {
-            center: new kakao.maps.LatLng(37.5665, 126.9780),
-            level: 3
-        };
-        const map = new kakao.maps.Map(mapContainer, mapOption);
-
-        // 현재 위치 가져오기
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const locPosition = new kakao.maps.LatLng(lat, lng);
-                map.setCenter(locPosition);
-            });
-        }
-
-        // 3. 지도 클릭 이벤트
-        let currentMarker = null;
-        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-            const latlng = mouseEvent.getLatLng();
-            if (currentMarker === null) {
-                currentMarker = new kakao.maps.Marker({
-                    position: latlng,
-                    map: map
-                });
-            } else {
-                currentMarker.setPosition(latlng);
-            }
-            document.getElementById('lat').value = latlng.getLat();
-            document.getElementById('lng').value = latlng.getLng();
-            document.getElementById('display-lat').innerText = latlng.getLat().toFixed(6);
-            document.getElementById('display-lng').innerText = latlng.getLng().toFixed(6);
-        });
-
-        // 4. 데이터 등록 및 파이어베이스 전송
-        const form = document.getElementById('observation-form');
-        const submitBtn = document.getElementById('submit-btn');
-
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault(); 
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
-            
-            if (!lat || !lng) {
-                alert("❌ 지도에서 생물을 발견한 정확한 위치를 클릭해 주세요!");
-                return;
-            }
-            
-            submitBtn.disabled = true;
-            submitBtn.innerText = "이미지 처리 및 업로드 중... ⏳";
-            
-            const studentInfo = document.getElementById('student-info').value;
-            const creatureName = document.getElementById('creature-name').value;
-            const discoveryLocation = document.getElementById('discovery-location').value;
-            const observationDetails = document.getElementById('observation-details').value;
-            const photoFile = document.getElementById('photo-upload').files[0];
-            
-            try {
-                const base64Image = await compressAndToBase64(photoFile, 800, 0.75);
-                
-                await db.collection("urban_nature").add({
-                    studentInfo: studentInfo,
-                    creatureName: creatureName,
-                    discoveryLocation: discoveryLocation,
-                    observationDetails: observationDetails,
-                    imageUrl: base64Image, 
-                    latitude: parseFloat(lat),
-                    longitude: parseFloat(lng),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                alert("🎉 생태 지도 등록 완료! 마커가 실시간으로 지도에 표시됩니다.");
-                form.reset();
-                if (currentMarker) currentMarker.setMap(null); 
-                currentMarker = null;
-                document.getElementById('display-lat').innerText = "지도에서 위치를 클릭하세요";
-                document.getElementById('display-lng').innerText = "지도에서 위치를 클릭하세요";
-                
-            } catch (error) {
-                console.error("오류 발생: ", error);
-                alert("❌ 등록에 실패했습니다. 파이어베이스 Firestore 규칙을 확인해 주세요.");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "생태 지도에 등록하기 🚀";
-            }
-        });
-
-        // 5. 실시간 데이터 동기화
-        db.collection("urban_nature").onSnapshot((snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const data = change.doc.data();
-                    createEcoMarker(data);
-                }
-            });
-        });
-
-        // 마커 생성 및 인포윈도우 함수
-        function createEcoMarker(data) {
-            const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
-            const marker = new kakao.maps.Marker({
-                position: markerPosition,
-                map: map
-            });
-            
-            const iwContent = `
-                <div class="infowindow-content">
-                    <div class="infowindow-title">🌱 ${data.creatureName}</div>
-                    <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
-                    <img src="${data.imageUrl}" alt="${data.creatureName}">
-                    <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
-                </div>
-            `;
-            
-            const infowindow = new kakao.maps.InfoWindow({
-                content: iwContent,
-                removable: true 
-            });
-            
-            kakao.maps.event.addListener(marker, 'click', function() {
-                infowindow.open(map, marker);
-            });
-        }
-
-    });
+// 2. 카카오 지도 초기화 (이제 인프라가 뚫렸으므로 정석대로 바로 실행합니다!)
+const mapContainer = document.getElementById('map');
+const mapOption = {
+    center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본 중심좌표 (서울시청)
+    level: 3 // 지도의 확대 레벨
 };
+const map = new kakao.maps.Map(mapContainer, mapOption);
 
-// ⭕ [수정된 핵심 포인트!] 마지막에 문을 열어(appendChild) 주어야 안전하게 이벤트를 가둡니다!
-document.head.appendChild(kakaoScript);
+// 현재 위치 가져오기 (학생들이 현장에서 접속했을 때 현재 위치로 지도 이동)
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const locPosition = new kakao.maps.LatLng(lat, lng);
+        map.setCenter(locPosition);
+    });
+}
+
+// 3. 지도 클릭 이벤트 복구 완료! (클릭하면 마커가 생기고 폼에 위도/경도가 박힙니다)
+let currentMarker = null;
+kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+    const latlng = mouseEvent.getLatLng();
+    if (currentMarker === null) {
+        currentMarker = new kakao.maps.Marker({
+            position: latlng,
+            map: map
+        });
+    } else {
+        currentMarker.setPosition(latlng);
+    }
+    document.getElementById('lat').value = latlng.getLat();
+    document.getElementById('lng').value = latlng.getLng();
+    document.getElementById('display-lat').innerText = latlng.getLat().toFixed(6);
+    document.getElementById('display-lng').innerText = latlng.getLng().toFixed(6);
+});
+
+// 4. 데이터 등록 및 파이어베이스 전송
+const form = document.getElementById('observation-form');
+const submitBtn = document.getElementById('submit-btn');
+
+form.addEventListener('submit', async function(e) {
+    e.preventDefault(); 
+    const lat = document.getElementById('lat').value;
+    const lng = document.getElementById('lng').value;
+    
+    if (!lat || !lng) {
+        alert("❌ 지도에서 생물을 발견한 정확한 위치를 클릭해 주세요!");
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.innerText = "이미지 처리 및 업로드 중... ⏳";
+    
+    const studentInfo = document.getElementById('student-info').value;
+    const creatureName = document.getElementById('creature-name').value;
+    const discoveryLocation = document.getElementById('discovery-location').value;
+    const observationDetails = document.getElementById('observation-details').value;
+    const photoFile = document.getElementById('photo-upload').files[0];
+    
+    try {
+        const base64Image = await compressAndToBase64(photoFile, 800, 0.75);
+        
+        // 100% 무료인 Firestore 창고에 사진 글자 데이터 직접 저장!
+        await db.collection("urban_nature").add({
+            studentInfo: studentInfo,
+            creatureName: creatureName,
+            discoveryLocation: discoveryLocation,
+            observationDetails: observationDetails,
+            imageUrl: base64Image, 
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lng),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert("🎉 생태 지도 등록 완료! 마커가 실시간으로 지도에 표시됩니다.");
+        form.reset();
+        if (currentMarker) currentMarker.setMap(null); 
+        currentMarker = null;
+        document.getElementById('display-lat').innerText = "지도에서 위치를 클릭하세요";
+        document.getElementById('display-lng').innerText = "지도에서 위치를 클릭하세요";
+        
+    } catch (error) {
+        console.error("오류 발생: ", error);
+        alert("❌ 등록에 실패했습니다. 파이어베이스 Firestore 규칙을 확인해 주세요.");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "생태 지도에 등록하기 🚀";
+    }
+});
+
+// 5. 실시간 데이터 동기화
+db.collection("urban_nature").onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+            const data = change.doc.data();
+            createEcoMarker(data);
+        }
+    });
+});
+
+// 마커 생성 및 인포윈도우 함수
+function createEcoMarker(data) {
+    // [★방어코드 추가] 데이터베이스에 실수로 빈 값이 들어가도 지도 크래시를 방지합니다!
+    if (!data.latitude || !data.longitude) return;
+
+    const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
+    const marker = new kakao.maps.Marker({
+        position: markerPosition,
+        map: map
+    });
+    
+    const iwContent = `
+        <div class="infowindow-content">
+            <div class="infowindow-title">🌱 ${data.creatureName}</div>
+            <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
+            <img src="${data.imageUrl}" alt="${data.creatureName}">
+            <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
+        </div>
+    `;
+    
+    const infowindow = new kakao.maps.InfoWindow({
+        content: iwContent,
+        removable: true 
+    });
+    
+    kakao.maps.event.addListener(marker, 'click', function() {
+        infowindow.open(map, marker);
+    });
+}
