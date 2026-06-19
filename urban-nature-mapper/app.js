@@ -1,11 +1,12 @@
 // 1. 파이어베이스 설정 (주인님의 실제 설정값으로 채워주세요!)
 const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
+  authDomain: "urban-nature-mapper.firebaseapp.com",
+  projectId: "urban-nature-mapper",
+  storageBucket: "urban-nature-mapper.firebasestorage.app",
+  messagingSenderId: "586767094407",
+  appId: "1:586767094407:web:3650c6b4302ddcc52f1e22",
+  measurementId: "G-GJXKEMTHD7"
 };
 
 // 파이어베이스 초기화
