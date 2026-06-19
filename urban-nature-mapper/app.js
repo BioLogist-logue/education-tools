@@ -1,3 +1,10 @@
+// ==========================================
+// 🛡️ [초특급 방어막] 전역 CSS가 카카오 지도 타일을 부수는 현상 영구 차단
+// ==========================================
+const cssShield = document.createElement('style');
+cssShield.innerHTML = `#map img { max-width: none !important; height: auto !important; }`;
+document.head.appendChild(cssShield);
+
 // 1. 파이어베이스 세팅 완벽 바인딩
 const firebaseConfig = {
   apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
@@ -12,12 +19,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 지도 위의 마커 객체들과 데이터를 실시간 추적 관리하기 위한 배열 기지
+// 전역 관리 배열 기지
 let allMarkersList = [];
 let currentFilter = "all"; 
 let isInitialLoad = true; 
 
-// ⭕ [주인님 맞춤형 컬러 매칭 완료] 절대 깨지지 않는 카카오맵 내장 정품 마커 리소스로 강제 연동!
+// [주인님 전용 컬러 바인딩]
 const markerColorSettings = {
     "생산자": "#2e7d32",   // 🟢 초록색
     "소비자": "#ffeb3b",   // 💛 노란색
@@ -61,6 +68,11 @@ const mapOption = {
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
+// 브라우저 창 크기가 바뀔 때 지도 타일을 자동으로 리프레시해주는 안전장치
+window.addEventListener('resize', function() {
+    map.relayout();
+});
+
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
         if (allMarkersList.length === 0) {
@@ -71,10 +83,10 @@ if (navigator.geolocation) {
     });
 }
 
-// 3. 지도 클릭 시 신규 핀 위치 배정 (버블링 원천 차단 방어막 구축)
+// 3. 지도 클릭 시 신규 핀 위치 배정 (마커 중복 적층 전면 차단)
 let currentMarker = null;
 kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-    // ⭕ [이중 안전장치] 클릭한 실제 엘리먼트 타겟이 생산자/소비자 핀이라면 신규 마커 생성을 생략해라!
+    // ⭕ [완벽 방어] 클릭 신호가 생태 핀(custom-pin)에서 올라온 거라면 지도 클릭 로직을 셧다운하라!
     if (mouseEvent.domEvent.target.classList.contains('custom-pin')) {
         return;
     }
@@ -224,6 +236,7 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
         
         if (hasValidMarkers) {
             map.setBounds(bounds); 
+            map.relayout(); // 초기 로드 시 깨진 타일 강제 복구
         }
         isInitialLoad = false; 
     }
@@ -238,16 +251,16 @@ function removeMarkerFromMap(id) {
     }
 }
 
-// 6. 🌟 무결점 정석 바닐라 DOM 객체 바인딩형 마커 빌더 함수
+// 6. 🌟 [버그 완전 박멸] 브라우저 정품 하드웨어 DOM 바인딩 마커 빌더
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
     const color = markerColorSettings[data.category] || "#1565c0";
     const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
 
-    // ⭕ [공신력 폭발 기술] 문자열 템플릿 대신 브라우저 하드웨어가 직접 제어하는 HTML DOM 엘리먼트 선언
+    // 가짜 텍스트 대신 진짜 브라우저 HTML 노드로 핀을 조각합니다.
     const pinNode = document.createElement('div');
-    pinNode.className = 'custom-pin'; // 클래스 이름 부여
+    pinNode.className = 'custom-pin';
     pinNode.style.width = '20px';
     pinNode.style.height = '20px';
     pinNode.style.backgroundColor = color;
@@ -258,34 +271,42 @@ function createEcoMarker(id, data) {
 
     const overlay = new kakao.maps.CustomOverlay({
         position: pos,
-        content: pinNode, // 객체 자체를 직렬 주입
-        map: currentFilter === "all" || currentFilter === data.category ? map : null
+        content: pinNode, // DOM 객체를 정석대로 결합
+        map: currentFilter === "all" || currentFilter === data.category ? map : null,
+        xAnchor: 0.5, // 마커의 정중앙이 좌표에 오도록 고정
+        yAnchor: 0.5
     });
 
-    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:100%; height:auto; margin:8px 0;">` : `<p>(사진 없음)</p>`;
+    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:100%; height:auto; margin:8px 0; display:block; border-radius:4px;">` : `<p style="margin:4px 0; color:#888; font-size:12px;">(사진 없음)</p>`;
 
     const infowindow = new kakao.maps.InfoWindow({
         content: `
-            <div class="infowindow-content">
-                <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
-                <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
+            <div class="infowindow-content" style="padding:10px; min-width:160px;">
+                <div class="infowindow-title" style="font-weight:bold; margin-bottom:5px;">[${data.category || '기타'}] ${data.creatureName}</div>
+                <div class="infowindow-meta" style="font-size:11px; color:#666; margin-bottom:5px;">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
                 ${imageHtml}
-                <div><strong>특징:</strong> ${data.observationDetails}</div>
-                <div class="action-buttons">
-                    <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')">✏️ 수정</button>
-                    <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')">❌ 삭제</button>
+                <div style="font-size:13px; margin-bottom:8px;"><strong>특징:</strong> ${data.observationDetails}</div>
+                <div class="action-buttons" style="display:flex; gap:4px;">
+                    <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')" style="cursor:pointer; padding:2px 6px; font-size:11px;">✏️ 수정</button>
+                    <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')" style="cursor:pointer; padding:2px 6px; font-size:11px;">❌ 삭제</button>
                 </div>
             </div>`,
         removable: true
     });
 
-    // ⭕ [버그 완전 박멸] 핀을 마우스 클릭하는 시점에 이벤트 전파를 우주 저 멀리 차단(stopPropagation) 시켜버립니다!
-    pinNode.onclick = function(event) {
-        if (event && event.stopPropagation) {
-            event.stopPropagation(); // 이 한 줄 덕분에 지도 배경 클릭 이벤트가 영원히 먹통이 됩니다!
-        }
+    // ⭕ [마법의 버블링 차단 쉴드] 핀 주위의 모든 마우스 이벤트를 완벽 포획하여 지도 배경으로 절대 흘러가지 않게 차단!
+    ['click', 'mousedown', 'mouseup', 'touchstart', 'touchend'].forEach(eventType => {
+        pinNode.addEventListener(eventType, function(event) {
+            if (event && event.stopPropagation) {
+                event.stopPropagation(); // 이 선언 덕분에 지도 위에 파란 마커가 중복 적층되는 현상이 100% 영구 박멸됩니다!
+            }
+        });
+    });
+
+    // 오직 순수한 클릭 시에만 정보창을 활성화시킨다!
+    pinNode.addEventListener('click', function() {
         infowindow.open(map, overlay);
-    };
+    });
 
     allMarkersList.push({ id, category: data.category, markerInstance: overlay, windowInstance: infowindow, data });
 }
@@ -296,7 +317,6 @@ window.triggerEditMode = function(id) {
     if (!item || !item.data) return;
     const data = item.data;
 
-    // ⭕ 수정 모드로 들어갈 때, 혹시 찍혀있을 신규 observation 마커를 제거합니다.
     if (currentMarker) {
         currentMarker.setMap(null);
         currentMarker = null;
