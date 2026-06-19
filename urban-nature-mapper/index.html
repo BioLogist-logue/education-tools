@@ -32,52 +32,54 @@
         .header {
             background-color: #2e7d32;
             color: white;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 5px;
         }
 
         .header p {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.9;
         }
 
         /* 폼 스타일 */
         #observation-form {
-            padding: 20px;
+            padding: 15px;
             flex: 1;
             overflow-y: auto;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: #444;
         }
 
         .form-group input[type="text"],
+        .form-group input[type="password"],
         .form-group textarea,
         .form-group input[type="file"],
         .form-group select {
             width: 100%;
-            padding: 10px;
+            padding: 8px 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 13px;
             transition: border-color 0.3s;
         }
 
         .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus,
         .form-group textarea:focus,
         .form-group select:focus {
             border-color: #2e7d32;
@@ -86,12 +88,12 @@
 
         .coordinate-box {
             background-color: #f9f9f9;
-            padding: 10px;
+            padding: 8px;
             border-radius: 6px;
             border: 1px dashed #ccc;
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .coordinate-box span {
@@ -101,12 +103,12 @@
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background-color: #2e7d32;
             color: white;
             border: none;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
@@ -125,10 +127,10 @@
         #map {
             width: 100%;
             height: 100%;
-            background-color: yellow;
+            background-color: #eee;
         }
 
-        /* ⭕ 지도 위에 둥둥 떠다닐 실시간 필터 버튼 패널 스타일 */
+        /* 지도 위 실시간 필터 버튼 패널 */
         #filter-panel {
             position: absolute;
             top: 15px;
@@ -137,13 +139,13 @@
             display: flex;
             gap: 6px;
             background: rgba(255, 255, 255, 0.95);
-            padding: 8px;
+            padding: 6px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .filter-btn {
-            padding: 8px 14px;
+            padding: 6px 12px;
             font-size: 12px;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -152,7 +154,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
-            width: auto; /* 기본 버튼 속성 리셋 */
+            width: auto;
         }
 
         .filter-btn:hover {
@@ -165,7 +167,7 @@
             border-color: #2e7d32;
         }
 
-        /* 인포윈도우 스타일 */
+        /* 인포윈도우 관리 및 수정/삭제 버튼 스타일 */
         .infowindow-content {
             padding: 10px;
             width: 250px;
@@ -174,57 +176,61 @@
 
         .infowindow-content img {
             width: 100%;
-            height: 140px;
+            height: 130px;
             object-fit: cover;
             border-radius: 4px;
-            margin-top: 5px;
-            margin-bottom: 5px;
+            margin: 5px 0;
         }
 
         .infowindow-title {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
             color: #2e7d32;
-            margin-bottom: 4px;
         }
 
         .infowindow-meta {
             font-size: 11px;
             color: #777;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
-        /* ⭕ [초특급 중요] 핸드폰 화면 반응형 스마트 레이아웃 조율 */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+            border-top: 1px dashed #eee;
+            padding-top: 6px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 4px;
+            font-size: 11px;
+            border-radius: 4px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .edit-btn { background-color: #ffa000; }
+        .edit-btn:hover { background-color: #f57c00; }
+        .del-btn { background-color: #d32f2f; }
+        .del-btn:hover { background-color: #c62828; }
+
+        /* 핸드폰 모바일 화면 레이아웃 최적화 */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column; /* 가로 가르기 대신 위아래 배정! */
-            }
-            #sidebar {
-                width: 100%;
-                height: 45vh; /* 화면의 45%만 사이드바(폼 입력칸)에 양보 */
-            }
-            #map-container {
-                width: 100%;
-                height: 55vh; /* 화면의 55%는 온전히 지도가 차지! */
-            }
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: 45vh; }
+            #map-container { width: 100%; height: 55vh; }
             #filter-panel {
-                top: 10px;
-                left: 10px;
-                padding: 4px;
-                max-width: calc(100% - 20px);
-                overflow-x: auto; /* 핸드폰에서 필터 버튼 많으면 스크롤 되게 */
+                top: 8px; left: 8px; padding: 4px;
+                max-width: calc(100% - 16px); overflow-x: auto;
             }
-            .filter-btn {
-                padding: 6px 10px;
-                font-size: 11px;
-                white-space: nowrap;
-            }
+            .filter-btn { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
         }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695"></script>
 </head>
@@ -237,6 +243,8 @@
         </div>
         
         <form id="observation-form">
+            <input type="hidden" id="edit-doc-id">
+
             <div class="form-group">
                 <label for="student-info">학번 / 이름</label>
                 <input type="text" id="student-info" placeholder="예: 10101 홍길동" required>
@@ -245,31 +253,37 @@
             <div class="form-group">
                 <label for="creature-category">생물 분류 선택</label>
                 <select id="creature-category" required>
-                    <option value="식물">🌿 식물 (스타핀)</option>
-                    <option value="동물">🐦 동물 (레드핀)</option>
-                    <option value="곤충">🐛 곤충 (블루핀)</option>
-                    <option value="기타">🔍 기타 (그린핀)</option>
+                    <option value="식물">🌿 식물 (노란색 스타)</option>
+                    <option value="동물">🐦 동물 (빨간색 마커)</option>
+                    <option value="곤충">🐛 곤충 (파란색 마커)</option>
+                    <option value="기타">🔍 기타 (초록색 마커)</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="creature-name">발견한 생물 이름</label>
-                <input type="text" id="creature-name" placeholder="예: 보도블록 틈새 질경이, 참새" required>
+                <input type="text" id="creature-name" placeholder="예: 보도블록 질경이, 참새" required>
             </div>
 
             <div class="form-group">
                 <label for="discovery-location">발견 장소 설명</label>
-                <input type="text" id="discovery-location" placeholder="예: 본관 뒤편 주차장 화단 옆" required>
+                <input type="text" id="discovery-location" placeholder="예: 본관 뒤편 화단" required>
             </div>
 
             <div class="form-group">
                 <label for="observation-details">관찰 내용 및 생태적 특징</label>
-                <textarea id="observation-details" rows="3" placeholder="예: 콘크리트 틈새에 뿌리를 내림." required></textarea>
+                <textarea id="observation-details" rows="2" placeholder="예: 콘크리트 틈새에 적응함." required></textarea>
+            </div>
+
+            <div class="form-group" id="photo-group">
+                <label for="photo-upload">생물 사진 올리기</label>
+                <input type="file" id="photo-upload" accept="image/*">
+                <small style="color:#888; font-size:11px;">* 수정 시 사진을 안 올리면 기존 사진이 유지됩니다.</small>
             </div>
 
             <div class="form-group">
-                <label for="photo-upload">생물 사진 올리기</label>
-                <input type="file" id="photo-upload" accept="image/*" required>
+                <label for="post-password">비밀번호 (숫자 4자리)</label>
+                <input type="password" id="post-password" placeholder="수정/삭제 시 필요합니다" maxlength="4" required>
             </div>
 
             <div class="coordinate-box">
@@ -282,6 +296,7 @@
             <input type="hidden" id="lng">
 
             <button type="submit" id="submit-btn">생태 지도에 등록하기 🚀</button>
+            <button type="button" id="cancel-edit-btn" style="background-color:#757575; margin-top:5px; display:none;">수정 취소하기 ↩️</button>
         </form>
     </div>
 
