@@ -15,13 +15,14 @@ const db = firebase.firestore();
 // 지도 위의 마커 객체들과 데이터를 실시간 추적 관리하기 위한 배열 기지
 let allMarkersList = [];
 let currentFilter = "all"; 
+let isInitialLoad = true; // ⭕ 처음 페이지 켰을 때 딱 한 번만 카메라를 핀 모음집으로 이동시키기 위한 안전장치 플래그
 
-// ⭕ [팩트체크 완료] 엑박 유발하던 카카오 주소 폐기하고, 업타임 100% 보장되는 구글 공식 컬러 핀 마커 이미지로 강제 전환!
+// ⭕ [100% 안심 정책] 글로벌 구글 맵 공식 컬러 핀 리소스로 영구 고정 (엑박 절대 불가)
 const markerImageSettings = {
-    "생산자": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }, // 초록색
-    "소비자": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) },    // 노란색
-    "분해자": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },   // 빨간색
-    "랜드마크": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) }   // 파란색
+    "식물": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) }, // 노란색
+    "동물": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },    // 빨간색
+    "곤충": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) },   // 파란색
+    "기타": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }   // 초록색
 };
 
 // 이미지 압축기
@@ -55,16 +56,19 @@ function compressAndToBase64(file, maxWidth, quality) {
 // 2. 카카오 지도 안착
 const mapContainer = document.getElementById('map');
 const mapOption = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780),
+    center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본값 서울시청
     level: 3 
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        map.setCenter(new kakao.maps.LatLng(lat, lng));
+        // 기존에 저장된 데이터가 아예 없을 때만 GPS 기준 위치로 이동하도록 방어막 구축
+        if (allMarkersList.length === 0) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            map.setCenter(new kakao.maps.LatLng(lat, lng));
+        }
     });
 }
 
@@ -118,7 +122,6 @@ form.addEventListener('submit', async function(e) {
         }
 
         if (editDocId) {
-            // [수정 모드 가동] 비밀번호 검증 후 업데이트
             const docRef = db.collection("urban_nature").doc(editDocId);
             const docSnap = await docRef.get();
             
@@ -144,9 +147,8 @@ form.addEventListener('submit', async function(e) {
             await bioAlert("✏️ 성공적으로 정보가 수정되었습니다!");
             resetFormState();
         } else {
-            // [신규 등록 모드 가동]
             if (!photoFile) {
-                alert("❌ 생물 사진을 등록해 주세요!");
+                await bioAlert("❌ 생물 사진을 등록해 주세요!");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "생태 지도에 등록하기 🚀";
                 return;
@@ -174,7 +176,6 @@ form.addEventListener('submit', async function(e) {
     }
 });
 
-// 폼 초기화 유틸함수
 function resetFormState() {
     form.reset();
     document.getElementById('edit-doc-id').value = "";
@@ -190,8 +191,12 @@ function resetFormState() {
 
 cancelEditBtn.addEventListener('click', resetFormState);
 
-// 5. 리얼타임 데이터 실시간 미러링
+// 5. 🌟 [초특급 진화] 리얼타임 미러링 + 자동 카메라 바운즈 오버레이 통합 엔진
 db.collection("urban_nature").onSnapshot((snapshot) => {
+    // 실시간으로 맵의 좌표 한계를 계산해 줄 영리한 구글/카카오 수학 도구 상자 가동
+    const bounds = new kakao.maps.LatLngBounds();
+    let hasValidMarkers = false;
+
     snapshot.docChanges().forEach((change) => {
         const id = change.doc.id;
         const data = change.doc.data();
@@ -205,9 +210,23 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
             removeMarkerFromMap(id);
         }
     });
+
+    // ⭕ [핵심 기능] 새로고침 시 기존 마커들이 저장되어 있다면, 그 마커들이 전부 보이도록 카메라 좌표를 강제 자동 이동!
+    if (isInitialLoad && allMarkersList.length > 0) {
+        allMarkersList.forEach(item => {
+            if (item.markerInstance) {
+                bounds.extend(item.markerInstance.getPosition());
+                hasValidMarkers = true;
+            }
+        });
+        
+        if (hasValidMarkers) {
+            map.setBounds(bounds); // 카메라를 마커가 모여있는 양천구로 자동 순간이동 시킵니다!
+        }
+        isInitialLoad = false; // 이후 학생들이 실시간으로 추가 발부할 때는 내 화면 카메라가 고정되도록 안전핀 가동!
+    }
 });
 
-// 지도에서 마커 지우기 유틸 함수
 function removeMarkerFromMap(id) {
     const idx = allMarkersList.findIndex(item => item.id === id);
     if (idx !== -1) {
@@ -217,7 +236,6 @@ function removeMarkerFromMap(id) {
     }
 }
 
-// 6. 맞춤형 이미지 마커 가동 및 수정/삭제 바인딩 기능
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
@@ -231,7 +249,6 @@ function createEcoMarker(id, data) {
         map: currentFilter === "all" || currentFilter === data.category ? map : null 
     });
     
-    // ⭕ [초특급 버그 수정!] 따옴표 깨짐 방지를 위해 인라인 인수를 모두 제거하고 오직 '${id}'만 깔끔하게 넘깁니다!
     const iwContent = `
         <div class="infowindow-content">
             <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
@@ -256,15 +273,13 @@ function createEcoMarker(id, data) {
         category: data.category || "기타",
         markerInstance: marker,
         windowInstance: infowindow,
-        data: data // ⭕ 나중에 꺼내 쓸 수 있도록 원본 데이터를 객체에 통째로 보관합니다!
+        data: data 
     });
 }
 
-// 7. ✏️ [완벽 보수] ID를 통해 안전하게 데이터를 로드하는 수정 모드 함수
 window.triggerEditMode = function(id) {
     const item = allMarkersList.find(m => m.id === id);
     if (!item || !item.data) return;
-    
     const data = item.data;
 
     document.getElementById('edit-doc-id').value = id;
@@ -279,7 +294,6 @@ window.triggerEditMode = function(id) {
     document.getElementById('display-lng').innerText = data.longitude.toFixed(6);
     
     photoUploadInput.required = false;
-    
     submitBtn.style.backgroundColor = "#ffa000";
     submitBtn.innerText = "수정 완료하기 ✏️";
     cancelEditBtn.style.display = "block";
@@ -287,7 +301,6 @@ window.triggerEditMode = function(id) {
     document.getElementById('sidebar').scrollTop = 0;
 };
 
-// 8. ❌ 전역 삭제 처리 요청 함수
 window.triggerDeletePost = async function(id) {
     const password = await bioPrompt("🔒 이 마커를 삭제하시려면 등록 시 설정한 비밀번호 4자리를 입력하세요:");
     if (!password) return;
@@ -302,15 +315,14 @@ window.triggerDeletePost = async function(id) {
         }
 
         if (await bioConfirm("⚠️ 정말로 이 생태 마커를 지도에서 영구 삭제하시겠습니까?")) {
-        await docRef.delete();
-        await bioAlert("🗑️ 마커가 지도에서 정상적으로 철거되었습니다.");
-    }
+            await docRef.delete();
+            await bioAlert("🗑️ 마커가 지도에서 정상적으로 철거되었습니다.");
+        }
     } catch (e) {
-        await bioAlert("삭제 중 오류가 발생했습니다.");
+        alert("삭제 중 오류가 발생했습니다.");
     }
 };
 
-// 9. 실시간 카테고리 필터링 제어선
 function applyFilter(selectedCategory) {
     currentFilter = selectedCategory;
     allMarkersList.forEach(item => {
@@ -330,6 +342,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         applyFilter(this.getAttribute('data-category'));
     });
 });
+
 // ==========================================
 // 🔥 [BioLogist 전용] 커스텀 모달 제어 코어 엔진 (Promise 기반)
 // ==========================================
@@ -341,13 +354,11 @@ function showBioModal(options) {
         const btnCancel = document.getElementById('bio-modal-btn-cancel');
         const btnOk = document.getElementById('bio-modal-btn-ok');
 
-        // 기본 세팅 초기화
         msgEl.innerText = options.message;
         inputEl.value = "";
         inputEl.style.display = options.type === 'prompt' ? 'block' : 'none';
         btnCancel.style.display = (options.type === 'confirm' || options.type === 'prompt') ? 'block' : 'none';
         
-        // 버튼 레이아웃 비율 조절 (버튼 한 개면 100%, 두 개면 50%씩)
         if (options.type === 'alert') {
             btnOk.style.width = '100%';
         } else {
@@ -357,7 +368,6 @@ function showBioModal(options) {
         overlay.style.display = 'flex';
         if (options.type === 'prompt') inputEl.focus();
 
-        // 확인 버튼 이벤트 바인딩
         btnOk.onclick = () => {
             overlay.style.display = 'none';
             if (options.type === 'prompt') {
@@ -367,7 +377,6 @@ function showBioModal(options) {
             }
         };
 
-        // 취소 버튼 이벤트 바인딩
         btnCancel.onclick = () => {
             overlay.style.display = 'none';
             if (options.type === 'prompt') {
@@ -379,7 +388,6 @@ function showBioModal(options) {
     });
 }
 
-// 기존 기본 브라우저 함수 명칭 가로채기 래핑 함수 정의
 const bioAlert = (msg) => showBioModal({ type: 'alert', message: msg });
 const bioConfirm = (msg) => showBioModal({ type: 'confirm', message: msg });
 const bioPrompt = (msg) => showBioModal({ type: 'prompt', message: msg });
