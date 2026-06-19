@@ -330,3 +330,56 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
         applyFilter(this.getAttribute('data-category'));
     });
 });
+// ==========================================
+// 🔥 [BioLogist 전용] 커스텀 모달 제어 코어 엔진 (Promise 기반)
+// ==========================================
+function showBioModal(options) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('bio-modal-overlay');
+        const msgEl = document.getElementById('bio-modal-message');
+        const inputEl = document.getElementById('bio-modal-input');
+        const btnCancel = document.getElementById('bio-modal-btn-cancel');
+        const btnOk = document.getElementById('bio-modal-btn-ok');
+
+        // 기본 세팅 초기화
+        msgEl.innerText = options.message;
+        inputEl.value = "";
+        inputEl.style.display = options.type === 'prompt' ? 'block' : 'none';
+        btnCancel.style.display = (options.type === 'confirm' || options.type === 'prompt') ? 'block' : 'none';
+        
+        // 버튼 레이아웃 비율 조절 (버튼 한 개면 100%, 두 개면 50%씩)
+        if (options.type === 'alert') {
+            btnOk.style.width = '100%';
+        } else {
+            btnOk.style.width = '50%';
+        }
+
+        overlay.style.display = 'flex';
+        if (options.type === 'prompt') inputEl.focus();
+
+        // 확인 버튼 이벤트 바인딩
+        btnOk.onclick = () => {
+            overlay.style.display = 'none';
+            if (options.type === 'prompt') {
+                resolve(inputEl.value);
+            } else {
+                resolve(true);
+            }
+        };
+
+        // 취소 버튼 이벤트 바인딩
+        btnCancel.onclick = () => {
+            overlay.style.display = 'none';
+            if (options.type === 'prompt') {
+                resolve(null);
+            } else {
+                resolve(false);
+            }
+        };
+    });
+}
+
+// 기존 기본 브라우저 함수 명칭 가로채기 래핑 함수 정의
+const bioAlert = (msg) => showBioModal({ type: 'alert', message: msg });
+const bioConfirm = (msg) => showBioModal({ type: 'confirm', message: msg });
+const bioPrompt = (msg) => showBioModal({ type: 'prompt', message: msg });
