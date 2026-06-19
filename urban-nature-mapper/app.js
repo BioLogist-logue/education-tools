@@ -15,14 +15,14 @@ const db = firebase.firestore();
 // 지도 위의 마커 객체들과 데이터를 실시간 추적 관리하기 위한 배열 기지
 let allMarkersList = [];
 let currentFilter = "all"; 
-let isInitialLoad = true; // ⭕ 처음 페이지 켰을 때 딱 한 번만 카메라를 핀 모음집으로 이동시키기 위한 안전장치 플래그
+let isInitialLoad = true; 
 
-// ⭕ [100% 안심 정책] 글로벌 구글 맵 공식 컬러 핀 리소스로 영구 고정 (엑박 절대 불가)
+// ⭕ [주인님 맞춤형 컬러 매칭 완료] 절대 깨지지 않는 카카오맵 내장 정품 마커 리소스로 강제 연동!
 const markerImageSettings = {
-    "생산자": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }, // 🟢 초록색
-    "소비자": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) }, // 💛 노란색
-    "분해자": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },    // 🔴 빨간색
-    "랜드마크": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) }  // 🔵 파란색
+    "생산자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/images/markerUrl.png", size: new kakao.maps.Size(27, 36) }, // 🟢 초록색
+    "소비자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", size: new kakao.maps.Size(24, 35) },      // 💛 노란색(별)
+    "분해자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png", size: new kakao.maps.Size(31, 35) },      // 🔴 빨간색
+    "랜드마크": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png", size: new kakao.maps.Size(31, 35) }    // 🔵 파란색
 };
 
 // 이미지 압축기
@@ -56,14 +56,13 @@ function compressAndToBase64(file, maxWidth, quality) {
 // 2. 카카오 지도 안착
 const mapContainer = document.getElementById('map');
 const mapOption = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본값 서울시청
+    center: new kakao.maps.LatLng(37.5665, 126.9780), 
     level: 3 
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
-        // 기존에 저장된 데이터가 아예 없을 때만 GPS 기준 위치로 이동하도록 방어막 구축
         if (allMarkersList.length === 0) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
@@ -100,7 +99,7 @@ form.addEventListener('submit', async function(e) {
     const editDocId = document.getElementById('edit-doc-id').value;
     
     if (!lat || !lng) {
-        alert("❌ 지도에서 발견 위치를 먼저 클릭해 주세요!");
+        await bioAlert("❌ 지도에서 발견 위치를 먼저 클릭해 주세요!");
         return;
     }
     
@@ -170,7 +169,7 @@ form.addEventListener('submit', async function(e) {
         }
     } catch (error) {
         console.error(error);
-        alert("❌ 동기화 실패. 비밀번호 및 네트워크 상태를 확인하세요.");
+        alert("❌ 동기화 실패. 네트워크 상태를 확인하세요.");
     } finally {
         submitBtn.disabled = false;
     }
@@ -191,9 +190,8 @@ function resetFormState() {
 
 cancelEditBtn.addEventListener('click', resetFormState);
 
-// 5. 🌟 [초특급 진화] 리얼타임 미러링 + 자동 카메라 바운즈 오버레이 통합 엔진
+// 5. 리얼타임 데이터 동기화 엔진
 db.collection("urban_nature").onSnapshot((snapshot) => {
-    // 실시간으로 맵의 좌표 한계를 계산해 줄 영리한 구글/카카오 수학 도구 상자 가동
     const bounds = new kakao.maps.LatLngBounds();
     let hasValidMarkers = false;
 
@@ -211,7 +209,6 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
         }
     });
 
-    // ⭕ [핵심 기능] 새로고침 시 기존 마커들이 저장되어 있다면, 그 마커들이 전부 보이도록 카메라 좌표를 강제 자동 이동!
     if (isInitialLoad && allMarkersList.length > 0) {
         allMarkersList.forEach(item => {
             if (item.markerInstance) {
@@ -221,9 +218,9 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
         });
         
         if (hasValidMarkers) {
-            map.setBounds(bounds); // 카메라를 마커가 모여있는 양천구로 자동 순간이동 시킵니다!
+            map.setBounds(bounds); 
         }
-        isInitialLoad = false; // 이후 학생들이 실시간으로 추가 발부할 때는 내 화면 카메라가 고정되도록 안전핀 가동!
+        isInitialLoad = false; 
     }
 });
 
@@ -236,11 +233,13 @@ function removeMarkerFromMap(id) {
     }
 }
 
+// 6. 맞춤형 마커 생성
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
+    // ⭕ [초특급 방어선] 상자에 없는 카테고리가 들어오면 에러내지 않고 기본 '랜드마크' 핀으로 우회시킵니다!
+    const imgStyle = markerImageSettings[data.category] || markerImageSettings["랜드마크"];
     const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
-    const imgStyle = markerImageSettings[data.category] || markerImageSettings["기타"];
     const markerImage = new kakao.maps.MarkerImage(imgStyle.src, imgStyle.size);
 
     const marker = new kakao.maps.Marker({
@@ -277,6 +276,7 @@ function createEcoMarker(id, data) {
     });
 }
 
+// 7. 수정 모드
 window.triggerEditMode = function(id) {
     const item = allMarkersList.find(m => m.id === id);
     if (!item || !item.data) return;
@@ -284,7 +284,7 @@ window.triggerEditMode = function(id) {
 
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('student-info').value = data.studentInfo;
-    document.getElementById('creature-category').value = data.category || "기타";
+    document.getElementById('creature-category').value = data.category || "랜드마크";
     document.getElementById('creature-name').value = data.creatureName;
     document.getElementById('discovery-location').value = data.discoveryLocation;
     document.getElementById('observation-details').value = data.observationDetails;
@@ -301,6 +301,7 @@ window.triggerEditMode = function(id) {
     document.getElementById('sidebar').scrollTop = 0;
 };
 
+// 8. 삭제 모드
 window.triggerDeletePost = async function(id) {
     const password = await bioPrompt("🔒 이 마커를 삭제하시려면 등록 시 설정한 비밀번호 4자리를 입력하세요:");
     if (!password) return;
@@ -323,6 +324,7 @@ window.triggerDeletePost = async function(id) {
     }
 };
 
+// 9. 필터 기능
 function applyFilter(selectedCategory) {
     currentFilter = selectedCategory;
     allMarkersList.forEach(item => {
@@ -344,7 +346,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 });
 
 // ==========================================
-// 🔥 [BioLogist 전용] 커스텀 모달 제어 코어 엔진 (Promise 기반)
+// 팝업 가로채기 모달 제어 엔진
 // ==========================================
 function showBioModal(options) {
     return new Promise((resolve) => {
