@@ -35,7 +35,6 @@ function compressAndToBase64(file, maxWidth, quality) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // ★ 핵심: 이미지를 쪼개지 않고 텍스트 형태(DataURL)로 바로 꽉 짜서 반환합니다.
                 const base64Data = canvas.toDataURL('image/jpeg', quality);
                 resolve(base64Data);
             };
@@ -44,12 +43,12 @@ function compressAndToBase64(file, maxWidth, quality) {
     });
 }
 
-// 카카오맵 로딩 자물쇠 가동
+// 카카오맵 로딩 엘리먼트 생성
 const kakaoScript = document.createElement('script');
 kakaoScript.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695&autoload=false';
 kakaoScript.async = true;
-document.head.appendChild(kakaoScript);
 
+// ⭕ [수정된 핵심 포인트!] 자물쇠(onload)를 "먼저" 세팅해서 기다리게 합니다!
 kakaoScript.onload = () => {
     kakao.maps.load(function() {
         
@@ -113,16 +112,14 @@ kakaoScript.onload = () => {
             const photoFile = document.getElementById('photo-upload').files[0];
             
             try {
-                // 원본 사진을 800px 용량 다이어트 거쳐서 텍스트 문자열로 변환!
                 const base64Image = await compressAndToBase64(photoFile, 800, 0.75);
                 
-                // 유료인 Storage를 거치지 않고, 100% 무료인 Firestore에 직접 꽂아버리기!
                 await db.collection("urban_nature").add({
                     studentInfo: studentInfo,
                     creatureName: creatureName,
                     discoveryLocation: discoveryLocation,
                     observationDetails: observationDetails,
-                    imageUrl: base64Image, // 사진 파일 대신 사진 글자가 들어갑니다!
+                    imageUrl: base64Image, 
                     latitude: parseFloat(lat),
                     longitude: parseFloat(lng),
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -154,7 +151,7 @@ kakaoScript.onload = () => {
             });
         });
 
-        // 마커 생성 및 인포윈도우 함수 (동일하게 작동!)
+        // 마커 생성 및 인포윈도우 함수
         function createEcoMarker(data) {
             const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
             const marker = new kakao.maps.Marker({
@@ -183,3 +180,6 @@ kakaoScript.onload = () => {
 
     });
 };
+
+// ⭕ [수정된 핵심 포인트!] 마지막에 문을 열어(appendChild) 주어야 안전하게 이벤트를 가둡니다!
+document.head.appendChild(kakaoScript);
