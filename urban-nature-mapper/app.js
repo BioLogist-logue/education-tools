@@ -12,16 +12,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 지도 위의 마커 객체들을 실시간 추적하고 삭제/수정하기 위한 배열 기지
+// 지도 위의 마커 객체들과 데이터를 실시간 추적 관리하기 위한 배열 기지
 let allMarkersList = [];
-let currentFilter = "all"; // 현재 선택된 필터 상태 보관함
+let currentFilter = "all"; 
 
-// ⭕ 카카오맵 공식 마커 리소스 강제 치환 매핑 매트릭스
+// ⭕ [팩트체크 완료] 엑박 유발하던 카카오 주소 폐기하고, 업타임 100% 보장되는 구글 공식 컬러 핀 마커 이미지로 강제 전환!
 const markerImageSettings = {
-    "식물": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", size: new kakao.maps.Size(24, 35) },
-    "동물": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png", size: new kakao.maps.Size(31, 35) },
-    "곤충": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png", size: new kakao.maps.Size(31, 35) },
-    "기타": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/images/markerUrl.png", size: new kakao.maps.Size(27, 36) }
+    "식물": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) }, // 노란색
+    "동물": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },    // 빨간색
+    "곤충": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) },   // 파란색
+    "기타": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }   // 초록색
 };
 
 // 이미지 압축기
@@ -118,14 +118,14 @@ form.addEventListener('submit', async function(e) {
         }
 
         if (editDocId) {
-            // 🔄 [수정 모드 가동] 비밀번호 검증 후 업데이트
+            // [수정 모드 가동] 비밀번호 검증 후 업데이트
             const docRef = db.collection("urban_nature").doc(editDocId);
             const docSnap = await docRef.get();
             
             if (docSnap.data().password !== password) {
                 alert("❌ 비밀번호가 틀렸습니다! 본인이 등록한 글만 수정할 수 있습니다.");
                 submitBtn.disabled = false;
-                submitBtn.innerText = "수정 완료하기 🚀";
+                submitBtn.innerText = "수정 완료하기 ✏️";
                 return;
             }
 
@@ -144,7 +144,7 @@ form.addEventListener('submit', async function(e) {
             alert("✏️ 성공적으로 정보가 수정되었습니다!");
             resetFormState();
         } else {
-            // ➕ [신규 등록 모드 가동]
+            // [신규 등록 모드 가동]
             if (!photoFile) {
                 alert("❌ 생물 사진을 등록해 주세요!");
                 submitBtn.disabled = false;
@@ -158,7 +158,7 @@ form.addEventListener('submit', async function(e) {
                 discoveryLocation: discoveryLocation,
                 observationDetails: observationDetails,
                 imageUrl: finalImageUrl, 
-                password: password, // 비밀번호 저장
+                password: password, 
                 latitude: parseFloat(lat),
                 longitude: parseFloat(lng),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -190,7 +190,7 @@ function resetFormState() {
 
 cancelEditBtn.addEventListener('click', resetFormState);
 
-// 5. 🌟 [핵심] 리얼타임 데이터 실시간 미러링 (추가/변경/삭제 대응 단선)
+// 5. 리얼타임 데이터 실시간 미러링
 db.collection("urban_nature").onSnapshot((snapshot) => {
     snapshot.docChanges().forEach((change) => {
         const id = change.doc.id;
@@ -199,11 +199,9 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
         if (change.type === "added") {
             createEcoMarker(id, data);
         } else if (change.type === "modified") {
-            // 수정 시 지도에서 핀을 찾아 없애고 최신 정보로 재조립
             removeMarkerFromMap(id);
             createEcoMarker(id, data);
         } else if (change.type === "removed") {
-            // 삭제 시 즉시 지도에서 증발 처리
             removeMarkerFromMap(id);
         }
     });
@@ -215,7 +213,7 @@ function removeMarkerFromMap(id) {
     if (idx !== -1) {
         allMarkersList[idx].markerInstance.setMap(null);
         allMarkersList[idx].windowInstance.close();
-        allMarkersList[idx].splice(idx, 1);
+        allMarkersList.splice(idx, 1);
     }
 }
 
@@ -230,10 +228,10 @@ function createEcoMarker(id, data) {
     const marker = new kakao.maps.Marker({
         position: markerPosition,
         image: markerImage,
-        map: currentFilter === "all" || currentFilter === data.category ? map : null // 현재 필터 상태 반영
+        map: currentFilter === "all" || currentFilter === data.category ? map : null 
     });
     
-    // 인포윈도우 내부에 수정 및 삭제 버튼 태그 추가 심기
+    // ⭕ [초특급 버그 수정!] 따옴표 깨짐 방지를 위해 인라인 인수를 모두 제거하고 오직 '${id}'만 깔끔하게 넘깁니다!
     const iwContent = `
         <div class="infowindow-content">
             <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
@@ -241,7 +239,7 @@ function createEcoMarker(id, data) {
             <img src="${data.imageUrl}" alt="${data.creatureName}">
             <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
             <div class="action-buttons">
-                <button class="action-btn edit-btn" onclick="triggerEditMode('${id}', '${data.studentInfo}', '${data.category}', '${data.creatureName}', '${data.discoveryLocation}', '${data.observationDetails}', ${data.latitude}, ${data.longitude})">✏️ 수정</button>
+                <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')">✏️ 수정</button>
                 <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')">❌ 삭제</button>
             </div>
         </div>
@@ -257,31 +255,35 @@ function createEcoMarker(id, data) {
         id: id,
         category: data.category || "기타",
         markerInstance: marker,
-        windowInstance: infowindow
+        windowInstance: infowindow,
+        data: data // ⭕ 나중에 꺼내 쓸 수 있도록 원본 데이터를 객체에 통째로 보관합니다!
     });
 }
 
-// 7. ✏️ 전역 수정 모드 트리거 발동 함수
-window.triggerEditMode = function(id, info, cat, name, loc, details, lat, lng) {
-    document.getElementById('edit-doc-id').value = id;
-    document.getElementById('student-info').value = info;
-    document.getElementById('creature-category').value = cat;
-    document.getElementById('creature-name').value = name;
-    document.getElementById('discovery-location').value = loc;
-    document.getElementById('observation-details').value = details;
-    document.getElementById('lat').value = lat;
-    document.getElementById('lng').value = lng;
-    document.getElementById('display-lat').innerText = lat.toFixed(6);
-    document.getElementById('display-lng').innerText = lng.toFixed(6);
+// 7. ✏️ [완벽 보수] ID를 통해 안전하게 데이터를 로드하는 수정 모드 함수
+window.triggerEditMode = function(id) {
+    const item = allMarkersList.find(m => m.id === id);
+    if (!item || !item.data) return;
     
-    // 수정 시에는 새 사진 등록 의무 면제
+    const data = item.data;
+
+    document.getElementById('edit-doc-id').value = id;
+    document.getElementById('student-info').value = data.studentInfo;
+    document.getElementById('creature-category').value = data.category || "기타";
+    document.getElementById('creature-name').value = data.creatureName;
+    document.getElementById('discovery-location').value = data.discoveryLocation;
+    document.getElementById('observation-details').value = data.observationDetails;
+    document.getElementById('lat').value = data.latitude;
+    document.getElementById('lng').value = data.longitude;
+    document.getElementById('display-lat').innerText = data.latitude.toFixed(6);
+    document.getElementById('display-lng').innerText = data.longitude.toFixed(6);
+    
     photoUploadInput.required = false;
     
     submitBtn.style.backgroundColor = "#ffa000";
     submitBtn.innerText = "수정 완료하기 ✏️";
     cancelEditBtn.style.display = "block";
     
-    // 화면 스크롤을 폼 입력창이 있는 맨 위로 강제 이동 (모바일 배려)
     document.getElementById('sidebar').scrollTop = 0;
 };
 
