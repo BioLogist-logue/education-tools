@@ -236,57 +236,41 @@ function removeMarkerFromMap(id) {
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
-    const markerColor = markerColorSettings[data.category] || "#1565c0";
-    const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
+    // 1. 카테고리 색상 안전장치 (데이터가 없으면 파란색 랜드마크로!)
+    const color = markerColorSettings[data.category] || "#1565c0";
+    const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
 
-    // ⭕ 엑박 안 뜨는 HTML/CSS 핀 생성
-    const markerContent = `
-        <div style="
-            width: 20px; 
-            height: 20px; 
-            background: ${markerColor}; 
-            border: 3px solid white; 
-            border-radius: 50%; 
-            box-shadow: 0 0 5px rgba(0,0,0,0.5); 
-            cursor: pointer;
-        "></div>
-    `;
-
-    const customOverlay = new kakao.maps.CustomOverlay({
-        position: markerPosition,
-        content: markerContent,
+    // 2. 동그라미 핀 생성
+    const overlay = new kakao.maps.CustomOverlay({
+        position: pos,
+        content: `<div style="width:20px; height:20px; background:${color}; border:3px solid white; border-radius:50%; box-shadow:0 0 5px #000; cursor:pointer;"></div>`,
         map: currentFilter === "all" || currentFilter === data.category ? map : null
     });
-    
-    // 클릭 시 인포윈도우 열기 (CustomOverlay는 .a 속성에 요소가 있음)
-    const iwContent = `
-        <div class="infowindow-content">
-            <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
-            <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
-            <img src="${data.imageUrl}" alt="${data.creatureName}" style="max-width:100%; height:auto;">
-            <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
-            <div class="action-buttons">
-                <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')">✏️ 수정</button>
-                <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')">❌ 삭제</button>
-            </div>
-        </div>
-    `;
-    
-    const infowindow = new kakao.maps.InfoWindow({ content: iwContent, removable: true });
-    
-    // 클릭 이벤트 연결
-    setTimeout(() => {
-        const el = customOverlay.a;
-        if (el) el.onclick = () => infowindow.open(map, customOverlay);
-    }, 500);
 
-    allMarkersList.push({
-        id: id,
-        category: data.category || "기타",
-        markerInstance: customOverlay, // 마커 대신 오버레이 저장
-        windowInstance: infowindow,
-        data: data 
+    // 3. 엑박 방지: 이미지 주소가 있을 때만 <img> 태그를 생성하도록 수정!
+    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:100%; height:auto; margin:8px 0;">` : `<p>(사진 없음)</p>`;
+
+    const infowindow = new kakao.maps.InfoWindow({
+        content: `
+            <div class="infowindow-content">
+                <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
+                <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
+                ${imageHtml}
+                <div><strong>특징:</strong> ${data.observationDetails}</div>
+                <div class="action-buttons">
+                    <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')">✏️ 수정</button>
+                    <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')">❌ 삭제</button>
+                </div>
+            </div>`,
+        removable: true
     });
+
+    // 클릭 이벤트
+    setTimeout(() => {
+        if(overlay.a) overlay.a.onclick = () => infowindow.open(map, overlay);
+    }, 100);
+
+    allMarkersList.push({ id, category: data.category, markerInstance: overlay, windowInstance: infowindow, data });
 }
 
 // 7. 수정 모드
