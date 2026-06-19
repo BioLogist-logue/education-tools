@@ -123,7 +123,7 @@ form.addEventListener('submit', async function(e) {
             const docSnap = await docRef.get();
             
             if (docSnap.data().password !== password) {
-                alert("❌ 비밀번호가 틀렸습니다! 본인이 등록한 글만 수정할 수 있습니다.");
+                await bioAlert("❌ 비밀번호가 틀렸습니다! 본인이 등록한 글만 수정할 수 있습니다.");
                 submitBtn.disabled = false;
                 submitBtn.innerText = "수정 완료하기 ✏️";
                 return;
@@ -141,7 +141,7 @@ form.addEventListener('submit', async function(e) {
             if (finalImageUrl) updateData.imageUrl = finalImageUrl;
 
             await docRef.update(updateData);
-            alert("✏️ 성공적으로 정보가 수정되었습니다!");
+            await bioAlert("✏️ 성공적으로 정보가 수정되었습니다!");
             resetFormState();
         } else {
             // [신규 등록 모드 가동]
@@ -163,7 +163,7 @@ form.addEventListener('submit', async function(e) {
                 longitude: parseFloat(lng),
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            alert("🎉 생태 지도 등록 완료!");
+            await bioAlert("🎉 생태 지도 등록 완료!");
             resetFormState();
         }
     } catch (error) {
@@ -289,7 +289,7 @@ window.triggerEditMode = function(id) {
 
 // 8. ❌ 전역 삭제 처리 요청 함수
 window.triggerDeletePost = async function(id) {
-    const password = prompt("🔒 이 마커를 삭제하시려면 등록 시 설정한 비밀번호 4자리를 입력하세요:");
+    const password = await bioPrompt("🔒 이 마커를 삭제하시려면 등록 시 설정한 비밀번호 4자리를 입력하세요:");
     if (!password) return;
 
     try {
@@ -297,16 +297,16 @@ window.triggerDeletePost = async function(id) {
         const docSnap = await docRef.get();
         
         if (docSnap.data().password !== password) {
-            alert("❌ 비밀번호가 올바르지 않습니다! 본인 데이터만 삭제할 수 있습니다.");
+            await bioAlert("❌ 비밀번호가 올바르지 않습니다! 본인 데이터만 삭제할 수 있습니다.");
             return;
         }
 
-        if (confirm("⚠️ 정말로 이 생태 마커를 지도에서 영구 삭제하시겠습니까?")) {
-            await docRef.delete();
-            alert("🗑️ 마커가 지도에서 정상적으로 철거되었습니다.");
-        }
+        if (await bioConfirm("⚠️ 정말로 이 생태 마커를 지도에서 영구 삭제하시겠습니까?")) {
+        await docRef.delete();
+        await bioAlert("🗑️ 마커가 지도에서 정상적으로 철거되었습니다.");
+    }
     } catch (e) {
-        alert("삭제 중 오류가 발생했습니다.");
+        await bioAlert("삭제 중 오류가 발생했습니다.");
     }
 };
 
