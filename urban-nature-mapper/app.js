@@ -56,11 +56,48 @@ kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
 });
 
 // 4. 데이터 등록 (폼 서브밋 이벤트)
+// ====== [새로 추가된 마법의 사진 압축 함수] ======
+function compressImage(file, maxWidth, quality) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // 사진의 가로가 지정한 최대 크기(예: 800px)보다 크면 비율 맞춰 줄임
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // 압축된 이미지 데이터를 Blob 형태로 변환 (JPEG 화질 75% 수준)
+                canvas.toBlob((blob) => {
+                    resolve(blob);
+                }, 'image/jpeg', quality);
+            };
+        };
+        reader.onerror = (error) => reject(error);
+    });
+}
+// ===================================================
+
+// 4. 데이터 등록 및 파이어베이스 전송 (업그레이드 버전!)
 const form = document.getElementById('observation-form');
 const submitBtn = document.getElementById('submit-btn');
 
 form.addEventListener('submit', async function(e) {
-    e.preventDefault(); // 기본 새로고침 방지
+    e.preventDefault(); 
     
     const lat = document.getElementById('lat').value;
     const lng = document.getElementById('lng').value;
@@ -71,7 +108,7 @@ form.addEventListener('submit', async function(e) {
     }
     
     submitBtn.disabled = true;
-    submitBtn.innerText = "데이터 업로드 중... ⏳";
+    submitBtn.innerText = "이미지 압축 및 업로드 중... ⏳"; // 문구 수정!
     
     const studentInfo = document.getElementById('student-info').value;
     const creatureName = document.getElementById('creature-name').value;
@@ -80,12 +117,15 @@ form.addEventListener('submit', async function(e) {
     const photoFile = document.getElementById('photo-upload').files[0];
     
     try {
-        // [A] 파이어베이스 스토리지에 이미지 업로드
-        const storageRef = storage.ref(`nature_photos/${Date.now()}_${photoFile.name}`);
-        const uploadTask = await storageRef.put(photoFile);
+        // [★ 핵심] 업로드 직전 사진을 가로 800px, 화질 75%로 자동 압축!!
+        const compressedBlob = await compressImage(photoFile, 800, 0.75);
+        
+        // [A] 압축된 파일(compressedBlob)을 스토리지에 저장
+        const storageRef = storage.ref(`nature_photos/${Date.now()}_compressed.jpg`);
+        const uploadTask = await storageRef.put(compressedBlob); // 원본 대신 압축본 투입!
         const imageUrl = await uploadTask.ref.getDownloadURL();
         
-        // [B] 파이어베이스 파이어스토어에 정보 저장
+        // [B] Firestore 데이터베이스에 텍스트와 이미지 경로 저장
         await db.collection("urban_nature").add({
             studentInfo: studentInfo,
             creatureName: creatureName,
@@ -99,14 +139,14 @@ form.addEventListener('submit', async function(e) {
         
         alert("🎉 생태 지도 등록 완료! 마커가 실시간으로 지도에 표시됩니다.");
         form.reset();
-        if (currentMarker) currentMarker.setMap(null); // 임시 마커 제거
+        if (currentMarker) currentMarker.setMap(null); 
         currentMarker = null;
         document.getElementById('display-lat').innerText = "지도에서 위치를 클릭하세요";
         document.getElementById('display-lng').innerText = "지도에서 위치를 클릭하세요";
         
     } catch (error) {
         console.error("오류 발생: ", error);
-        alert("❌ 등록에 실패했습니다. 코드가 올바르게 설정되었는지 확인해 주세요.");
+        alert("❌ 등록에 실패했습니다. 키 설정을 다시 확인해 주세요.");
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = "생태 지도에 등록하기 🚀";
