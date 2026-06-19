@@ -18,11 +18,11 @@ let currentFilter = "all";
 let isInitialLoad = true; 
 
 // ⭕ [주인님 맞춤형 컬러 매칭 완료] 절대 깨지지 않는 카카오맵 내장 정품 마커 리소스로 강제 연동!
-const markerImageSettings = {
-    "생산자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/images/markerUrl.png", size: new kakao.maps.Size(27, 36) }, // 🟢 초록색
-    "소비자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", size: new kakao.maps.Size(24, 35) },      // 💛 노란색(별)
-    "분해자": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png", size: new kakao.maps.Size(31, 35) },      // 🔴 빨간색
-    "랜드마크": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png", size: new kakao.maps.Size(31, 35) }    // 🔵 파란색
+const markerColorSettings = {
+    "생산자": "#2e7d32",   // 🟢 초록색
+    "소비자": "#ffeb3b",   // 💛 노란색
+    "분해자": "#d32f2f",   // 🔴 빨간색
+    "랜드마크": "#1565c0"  // 🔵 파란색
 };
 
 // 이미지 압축기
@@ -227,32 +227,43 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
 function removeMarkerFromMap(id) {
     const idx = allMarkersList.findIndex(item => item.id === id);
     if (idx !== -1) {
-        allMarkersList[idx].markerInstance.setMap(null);
+        allMarkersList[idx].markerInstance.setMap(null); // 오버레이 지우기
         allMarkersList[idx].windowInstance.close();
         allMarkersList.splice(idx, 1);
     }
 }
 
-// 6. 맞춤형 마커 생성
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
-    // ⭕ [초특급 방어선] 상자에 없는 카테고리가 들어오면 에러내지 않고 기본 '랜드마크' 핀으로 우회시킵니다!
-    const imgStyle = markerImageSettings[data.category] || markerImageSettings["랜드마크"];
+    const markerColor = markerColorSettings[data.category] || "#1565c0";
     const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
-    const markerImage = new kakao.maps.MarkerImage(imgStyle.src, imgStyle.size);
 
-    const marker = new kakao.maps.Marker({
+    // ⭕ 엑박 안 뜨는 HTML/CSS 핀 생성
+    const markerContent = `
+        <div style="
+            width: 20px; 
+            height: 20px; 
+            background: ${markerColor}; 
+            border: 3px solid white; 
+            border-radius: 50%; 
+            box-shadow: 0 0 5px rgba(0,0,0,0.5); 
+            cursor: pointer;
+        "></div>
+    `;
+
+    const customOverlay = new kakao.maps.CustomOverlay({
         position: markerPosition,
-        image: markerImage,
-        map: currentFilter === "all" || currentFilter === data.category ? map : null 
+        content: markerContent,
+        map: currentFilter === "all" || currentFilter === data.category ? map : null
     });
     
+    // 클릭 시 인포윈도우 열기 (CustomOverlay는 .a 속성에 요소가 있음)
     const iwContent = `
         <div class="infowindow-content">
             <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
             <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
-            <img src="${data.imageUrl}" alt="${data.creatureName}">
+            <img src="${data.imageUrl}" alt="${data.creatureName}" style="max-width:100%; height:auto;">
             <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
             <div class="action-buttons">
                 <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')">✏️ 수정</button>
@@ -263,14 +274,16 @@ function createEcoMarker(id, data) {
     
     const infowindow = new kakao.maps.InfoWindow({ content: iwContent, removable: true });
     
-    kakao.maps.event.addListener(marker, 'click', function() {
-        infowindow.open(map, marker);
-    });
+    // 클릭 이벤트 연결
+    setTimeout(() => {
+        const el = customOverlay.a;
+        if (el) el.onclick = () => infowindow.open(map, customOverlay);
+    }, 500);
 
     allMarkersList.push({
         id: id,
         category: data.category || "기타",
-        markerInstance: marker,
+        markerInstance: customOverlay, // 마커 대신 오버레이 저장
         windowInstance: infowindow,
         data: data 
     });
