@@ -42,7 +42,7 @@ function compressImage(file, maxWidth, quality) {
 
 // 🔴 [마법의 구역] index.html 대신 app.js가 직접 카카오 지도를 안전하게 불러옵니다.
 const kakaoScript = document.createElement('script');
-kakaoScript.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695&autoload=false';
+kakaoScript.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=61f52db8267bc831d2afd5e704c3ac52&autoload=false';
 kakaoScript.async = true;
 document.head.appendChild(kakaoScript);
 
