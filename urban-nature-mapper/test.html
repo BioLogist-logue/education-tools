@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>카카오맵 생존 테스트</title>
+</head>
+<body>
+    <div id="map" style="width:100vw;height:100vh;background-color:yellow;"></div>
+
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695"></script>
+    
+    <script>
+        // 지도 그리기
+        var mapContainer = document.getElementById('map'); 
+        var mapOption = { 
+            center: new kakao.maps.LatLng(33.450701, 126.570667), // 제주도 카카오 본사 좌표
+            level: 3 
+        };
+        var map = new kakao.maps.Map(mapContainer, mapOption);
+    </script>
+</body>
+</html>
