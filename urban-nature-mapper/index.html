@@ -156,17 +156,13 @@
         }
     </style>
 
-    <!-- Firebase SDK (Compat 버전으로 초보자도 쓰기 쉽게 구성) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
-    <!-- 카카오맵 API (YOUR_KAKAO_JS_KEY 부분을 실제 발급받은 자바스크립트 키로 교체해야 합니다) -->
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695&autoload=false"></script>
-</head>
+    </head>
 <body>
 
-    <!-- 왼쪽 사이드바: 입력 폼 -->
     <div id="sidebar">
         <div class="header">
             <h1>🌿 어반 네이처 맵퍼</h1>
@@ -199,14 +195,12 @@
                 <input type="file" id="photo-upload" accept="image/*" required>
             </div>
 
-            <!-- 지도 클릭 시 자동으로 위도, 경도가 찍히는 안내창 -->
             <div class="coordinate-box">
                 📍 선택된 위치<br>
                 위도: <span id="display-lat">지도에서 위치를 클릭하세요</span><br>
                 경도: <span id="display-lng">지도에서 위치를 클릭하세요</span>
             </div>
 
-            <!-- 실제 전송할 숨겨진 input -->
             <input type="hidden" id="lat">
             <input type="hidden" id="lng">
 
@@ -214,12 +208,10 @@
         </form>
     </div>
 
-    <!-- 오른쪽 영역: 지도 -->
     <div id="map-container">
         <div id="map"></div>
     </div>
 
-    <!-- 로직 스크립트 연결 -->
     <script src="app.js"></script>
 </body>
 </html>
