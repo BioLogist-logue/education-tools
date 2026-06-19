@@ -67,7 +67,8 @@
 
         .form-group input[type="text"],
         .form-group textarea,
-        .form-group input[type="file"] {
+        .form-group input[type="file"],
+        .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -77,7 +78,8 @@
         }
 
         .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             border-color: #2e7d32;
             outline: none;
         }
@@ -126,6 +128,43 @@
             background-color: yellow;
         }
 
+        /* ⭕ 지도 위에 둥둥 떠다닐 실시간 필터 버튼 패널 스타일 */
+        #filter-panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .filter-btn {
+            padding: 8px 14px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            width: auto; /* 기본 버튼 속성 리셋 */
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #2e7d32;
+            color: white;
+            border-color: #2e7d32;
+        }
+
         /* 인포윈도우 스타일 */
         .infowindow-content {
             padding: 10px;
@@ -154,6 +193,33 @@
             color: #777;
             margin-bottom: 6px;
         }
+
+        /* ⭕ [초특급 중요] 핸드폰 화면 반응형 스마트 레이아웃 조율 */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* 가로 가르기 대신 위아래 배정! */
+            }
+            #sidebar {
+                width: 100%;
+                height: 45vh; /* 화면의 45%만 사이드바(폼 입력칸)에 양보 */
+            }
+            #map-container {
+                width: 100%;
+                height: 55vh; /* 화면의 55%는 온전히 지도가 차지! */
+            }
+            #filter-panel {
+                top: 10px;
+                left: 10px;
+                padding: 4px;
+                max-width: calc(100% - 20px);
+                overflow-x: auto; /* 핸드폰에서 필터 버튼 많으면 스크롤 되게 */
+            }
+            .filter-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -177,6 +243,16 @@
             </div>
 
             <div class="form-group">
+                <label for="creature-category">생물 분류 선택</label>
+                <select id="creature-category" required>
+                    <option value="식물">🌿 식물 (스타핀)</option>
+                    <option value="동물">🐦 동물 (레드핀)</option>
+                    <option value="곤충">🐛 곤충 (블루핀)</option>
+                    <option value="기타">🔍 기타 (그린핀)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="creature-name">발견한 생물 이름</label>
                 <input type="text" id="creature-name" placeholder="예: 보도블록 틈새 질경이, 참새" required>
             </div>
@@ -188,7 +264,7 @@
 
             <div class="form-group">
                 <label for="observation-details">관찰 내용 및 생태적 특징</label>
-                <textarea id="observation-details" rows="4" placeholder="예: 콘크리트 틈새에 뿌리를 내림. 척박한 환경에 적응한 생산자 역할을 하고 있음." required></textarea>
+                <textarea id="observation-details" rows="3" placeholder="예: 콘크리트 틈새에 뿌리를 내림." required></textarea>
             </div>
 
             <div class="form-group">
@@ -210,6 +286,14 @@
     </div>
 
     <div id="map-container">
+        <div id="filter-panel">
+            <button class="filter-btn active" data-category="all">전체보기 🌈</button>
+            <button class="filter-btn" data-category="식물">식물 🌿</button>
+            <button class="filter-btn" data-category="동물">동물 🐦</button>
+            <button class="filter-btn" data-category="곤충">곤충 🐛</button>
+            <button class="filter-btn" data-category="기타">기타 🔍</button>
+        </div>
+        
         <div id="map"></div>
     </div>
 
