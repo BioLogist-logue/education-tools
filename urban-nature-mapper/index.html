@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>어반 네이처 맵퍼 (Urban Nature Mapper)</title>
+    <title>지역 생태계 맵핑 (Urban Nature Mapper)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -253,10 +253,10 @@
             <div class="form-group">
                 <label for="creature-category">생물 분류 선택</label>
                 <select id="creature-category" required>
-                    <option value="식물">🌿 식물 (노란색 스타)</option>
-                    <option value="동물">🐦 동물 (빨간색 마커)</option>
-                    <option value="곤충">🐛 곤충 (파란색 마커)</option>
-                    <option value="기타">🔍 기타 (초록색 마커)</option>
+                    <option value="생산자">🌿 생산자 (초록색 마커)</option>
+                    <option value="소비자">🐦 소비자 (노란색 마커)</option>
+                    <option value="분해자">🐛 분해자 (빨간색 마커)</option>
+                    <option value="랜드마크">🔍 랜드마크 (파란색 마커)</option>
                 </select>
             </div>
 
@@ -303,10 +303,10 @@
     <div id="map-container">
         <div id="filter-panel">
             <button class="filter-btn active" data-category="all">전체보기 🌈</button>
-            <button class="filter-btn" data-category="식물">식물 🌿</button>
-            <button class="filter-btn" data-category="동물">동물 🐦</button>
-            <button class="filter-btn" data-category="곤충">곤충 🐛</button>
-            <button class="filter-btn" data-category="기타">기타 🔍</button>
+            <button class="filter-btn" data-category="생산자">생산자 🌿</button>
+            <button class="filter-btn" data-category="소비자">소비자 🐦</button>
+            <button class="filter-btn" data-category="분해자">분해자 🐛</button>
+            <button class="filter-btn" data-category="랜드마크">랜드마크 🔍</button>
         </div>
         
         <div id="map"></div>
