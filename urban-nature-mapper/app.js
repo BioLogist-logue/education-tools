@@ -71,9 +71,14 @@ if (navigator.geolocation) {
     });
 }
 
-// 3. 지도 클릭 시 신규 핀 위치 배정
+// 3. 지도 클릭 시 신규 핀 위치 배정 (버블링 원천 차단 방어막 구축)
 let currentMarker = null;
 kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+    // ⭕ [이중 안전장치] 클릭한 실제 엘리먼트 타겟이 생산자/소비자 핀이라면 신규 마커 생성을 생략해라!
+    if (mouseEvent.domEvent.target.classList.contains('custom-pin')) {
+        return;
+    }
+
     const latlng = mouseEvent.latLng; 
     if (currentMarker === null) {
         currentMarker = new kakao.maps.Marker({ position: latlng, map: map });
@@ -227,27 +232,36 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
 function removeMarkerFromMap(id) {
     const idx = allMarkersList.findIndex(item => item.id === id);
     if (idx !== -1) {
-        allMarkersList[idx].markerInstance.setMap(null); // 오버레이 지우기
+        allMarkersList[idx].markerInstance.setMap(null); 
         allMarkersList[idx].windowInstance.close();
         allMarkersList.splice(idx, 1);
     }
 }
 
+// 6. 🌟 무결점 정석 바닐라 DOM 객체 바인딩형 마커 빌더 함수
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
-    // 1. 카테고리 색상 안전장치 (데이터가 없으면 파란색 랜드마크로!)
     const color = markerColorSettings[data.category] || "#1565c0";
     const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
 
-    // 2. 동그라미 핀 생성
+    // ⭕ [공신력 폭발 기술] 문자열 템플릿 대신 브라우저 하드웨어가 직접 제어하는 HTML DOM 엘리먼트 선언
+    const pinNode = document.createElement('div');
+    pinNode.className = 'custom-pin';
+    pinNode.style.width = '20px';
+    pinNode.style.height = '20px';
+    pinNode.style.backgroundColor = color;
+    pinNode.style.border = '3px solid white';
+    pinNode.style.borderRadius = '50%';
+    pinNode.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
+    pinNode.style.cursor = 'pointer';
+
     const overlay = new kakao.maps.CustomOverlay({
         position: pos,
-        content: `<div style="width:20px; height:20px; background:${color}; border:3px solid white; border-radius:50%; box-shadow:0 0 5px #000; cursor:pointer;"></div>`,
+        content: pinNode, // 객체 자체를 직렬 주입
         map: currentFilter === "all" || currentFilter === data.category ? map : null
     });
 
-    // 3. 엑박 방지: 이미지 주소가 있을 때만 <img> 태그를 생성하도록 수정!
     const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:100%; height:auto; margin:8px 0;">` : `<p>(사진 없음)</p>`;
 
     const infowindow = new kakao.maps.InfoWindow({
@@ -265,10 +279,13 @@ function createEcoMarker(id, data) {
         removable: true
     });
 
-    // 클릭 이벤트
-    setTimeout(() => {
-        if(overlay.a) overlay.a.onclick = () => infowindow.open(map, overlay);
-    }, 100);
+    // ⭕ [버그 완전 박멸] 핀을 마우스 클릭하는 시점에 이벤트 전파를 우주 저 멀리 차단(stopPropagation) 시켜버립니다!
+    pinNode.onclick = function(event) {
+        if (event && event.stopPropagation) {
+            event.stopPropagation(); // 이 한 줄 덕분에 지도 배경 클릭 이벤트가 영원히 먹통이 됩니다!
+        }
+        infowindow.open(map, overlay);
+    };
 
     allMarkersList.push({ id, category: data.category, markerInstance: overlay, windowInstance: infowindow, data });
 }
