@@ -247,7 +247,7 @@ function createEcoMarker(id, data) {
 
     // ⭕ [공신력 폭발 기술] 문자열 템플릿 대신 브라우저 하드웨어가 직접 제어하는 HTML DOM 엘리먼트 선언
     const pinNode = document.createElement('div');
-    pinNode.className = 'custom-pin';
+    pinNode.className = 'custom-pin'; // 클래스 이름 부여
     pinNode.style.width = '20px';
     pinNode.style.height = '20px';
     pinNode.style.backgroundColor = color;
@@ -295,6 +295,12 @@ window.triggerEditMode = function(id) {
     const item = allMarkersList.find(m => m.id === id);
     if (!item || !item.data) return;
     const data = item.data;
+
+    // ⭕ 수정 모드로 들어갈 때, 혹시 찍혀있을 신규 observation 마커를 제거합니다.
+    if (currentMarker) {
+        currentMarker.setMap(null);
+        currentMarker = null;
+    }
 
     document.getElementById('edit-doc-id').value = id;
     document.getElementById('student-info').value = data.studentInfo;
