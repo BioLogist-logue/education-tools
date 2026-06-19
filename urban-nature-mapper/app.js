@@ -1,4 +1,4 @@
-// 1. 파이어베이스 설정 완료! (주인님의 진짜 키값 이식 완료)
+// 1. 파이어베이스 설정 완료!
 const firebaseConfig = {
   apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
   authDomain: "urban-nature-mapper.firebaseapp.com",
@@ -42,15 +42,15 @@ function compressAndToBase64(file, maxWidth, quality) {
     });
 }
 
-// 2. 카카오 지도 초기화 (이제 인프라가 뚫렸으므로 정석대로 바로 실행합니다!)
+// 2. 카카오 지도 초기화
 const mapContainer = document.getElementById('map');
 const mapOption = {
     center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본 중심좌표 (서울시청)
-    level: 3 // 지도의 확대 레벨
+    level: 3 
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
-// 현재 위치 가져오기 (학생들이 현장에서 접속했을 때 현재 위치로 지도 이동)
+// 현재 위치 가져오기
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
         const lat = position.coords.latitude;
@@ -60,10 +60,11 @@ if (navigator.geolocation) {
     });
 }
 
-// 3. 지도 클릭 이벤트 복구 완료! (클릭하면 마커가 생기고 폼에 위도/경도가 박힙니다)
+// 3. 지도 클릭 이벤트 (★ 띨빡이의 오타를 무결점 .latLng 로 완벽 수정했습니다!)
 let currentMarker = null;
 kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-    const latlng = mouseEvent.getLatLng();
+    const latlng = mouseEvent.latLng; // ⭕ 정답 코드로 복구 완료!
+    
     if (currentMarker === null) {
         currentMarker = new kakao.maps.Marker({
             position: latlng,
@@ -104,7 +105,6 @@ form.addEventListener('submit', async function(e) {
     try {
         const base64Image = await compressAndToBase64(photoFile, 800, 0.75);
         
-        // 100% 무료인 Firestore 창고에 사진 글자 데이터 직접 저장!
         await db.collection("urban_nature").add({
             studentInfo: studentInfo,
             creatureName: creatureName,
@@ -144,7 +144,6 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
 
 // 마커 생성 및 인포윈도우 함수
 function createEcoMarker(data) {
-    // [★방어코드 추가] 데이터베이스에 실수로 빈 값이 들어가도 지도 크래시를 방지합니다!
     if (!data.latitude || !data.longitude) return;
 
     const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
