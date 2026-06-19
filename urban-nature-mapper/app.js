@@ -9,11 +9,20 @@ const firebaseConfig = {
   measurementId: "G-GJXKEMTHD7"
 };
 
-// 파이어베이스 초기화
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// 마법의 사진 압축 및 글자(Base64 DataURL) 변환 함수
+// ⭕ 전 세계 지도에 뿌려진 마커들을 추적 관리할 비밀 기지 배열 생성!
+let allMarkersList = [];
+
+// ⭕ 카테고리별 마커 이미지 지도 설정 상자 (카카오 제공 공식 샘플 및 안정 마커 리소스로 바인딩)
+const markerImageSettings = {
+    "식물": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png", size: new kakao.maps.Size(24, 35) },
+    "동물": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png", size: new kakao.maps.Size(31, 35) },
+    "곤충": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_blue.png", size: new kakao.maps.Size(31, 35) },
+    "기타": { src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/images/markerUrl.png", size: new kakao.maps.Size(27, 36) }
+};
+
 function compressAndToBase64(file, maxWidth, quality) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -33,7 +42,6 @@ function compressAndToBase64(file, maxWidth, quality) {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
                 const base64Data = canvas.toDataURL('image/jpeg', quality);
                 resolve(base64Data);
             };
@@ -45,12 +53,11 @@ function compressAndToBase64(file, maxWidth, quality) {
 // 2. 카카오 지도 초기화
 const mapContainer = document.getElementById('map');
 const mapOption = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780), // 기본 중심좌표 (서울시청)
+    center: new kakao.maps.LatLng(37.5665, 126.9780),
     level: 3 
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
-// 현재 위치 가져오기
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
         const lat = position.coords.latitude;
@@ -60,10 +67,10 @@ if (navigator.geolocation) {
     });
 }
 
-// 3. 지도 클릭 이벤트 (★ 띨빡이의 오타를 무결점 .latLng 로 완벽 수정했습니다!)
+// 3. 지도 클릭 이벤트
 let currentMarker = null;
 kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-    const latlng = mouseEvent.latLng; // ⭕ 정답 코드로 복구 완료!
+    const latlng = mouseEvent.latLng; 
     
     if (currentMarker === null) {
         currentMarker = new kakao.maps.Marker({
@@ -97,6 +104,7 @@ form.addEventListener('submit', async function(e) {
     submitBtn.innerText = "이미지 처리 및 업로드 중... ⏳";
     
     const studentInfo = document.getElementById('student-info').value;
+    const creatureCategory = document.getElementById('creature-category').value; // ⭕ 카테고리 값 가치 획득!
     const creatureName = document.getElementById('creature-name').value;
     const discoveryLocation = document.getElementById('discovery-location').value;
     const observationDetails = document.getElementById('observation-details').value;
@@ -107,6 +115,7 @@ form.addEventListener('submit', async function(e) {
         
         await db.collection("urban_nature").add({
             studentInfo: studentInfo,
+            category: creatureCategory, // ⭕ 구글 창고에 이쁘게 분류 열 탑재!
             creatureName: creatureName,
             discoveryLocation: discoveryLocation,
             observationDetails: observationDetails,
@@ -142,19 +151,25 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
     });
 });
 
-// 마커 생성 및 인포윈도우 함수
+// ⭕ 맞춤형 모양 입혀서 마커 생성 및 인포윈도우 관리 함수 수정
 function createEcoMarker(data) {
     if (!data.latitude || !data.longitude) return;
 
     const markerPosition = new kakao.maps.LatLng(data.latitude, data.longitude);
+    
+    // ★ 핵심: 카테고리에 맞는 전용 이미지 뺏어와서 장착하기!
+    const imgStyle = markerImageSettings[data.category] || markerImageSettings["기타"];
+    const markerImage = new kakao.maps.MarkerImage(imgStyle.src, imgStyle.size);
+
     const marker = new kakao.maps.Marker({
         position: markerPosition,
+        image: markerImage, // 드디어 고유의 색과 모양 장착 완료!
         map: map
     });
     
     const iwContent = `
         <div class="infowindow-content">
-            <div class="infowindow-title">🌱 ${data.creatureName}</div>
+            <div class="infowindow-title">[${data.category || '기타'}] ${data.creatureName}</div>
             <div class="infowindow-meta">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
             <img src="${data.imageUrl}" alt="${data.creatureName}">
             <div><strong>관찰 특징:</strong> ${data.observationDetails}</div>
@@ -169,4 +184,36 @@ function createEcoMarker(data) {
     kakao.maps.event.addListener(marker, 'click', function() {
         infowindow.open(map, marker);
     });
+
+    // ⭕ 비밀 기지 관리 배열에 카테고리 정보와 함께 수장해 두기!
+    allMarkersList.push({
+        category: data.category || "기타",
+        markerInstance: marker,
+        windowInstance: infowindow
+    });
 }
+
+// ⭕ 3번 기능: 카테고리 실시간 숨기기/보여주기 마법 함수 구현 완료
+function applyFilter(selectedCategory) {
+    allMarkersList.forEach(item => {
+        if (selectedCategory === "all" || item.category === selectedCategory) {
+            item.markerInstance.setMap(map); // 일치하면 보이기!
+        } else {
+            item.markerInstance.setMap(null); // 일치 안 하면 숨기기!
+            item.windowInstance.close(); // 열려있던 말상자도 매너 있게 닫기!
+        }
+    });
+}
+
+// ⭕ 필터 버튼들의 마우스 클릭 이벤트 감지선 연결
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // 초록색 액티브 불빛 옮겨 붙이기
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 버튼에 적힌 분류 이름 가져와서 필터링 가동!
+        const targetCategory = this.getAttribute('data-category');
+        applyFilter(targetCategory);
+    });
+});
