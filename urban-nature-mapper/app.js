@@ -18,10 +18,10 @@ let currentFilter = "all";
 
 // ⭕ [팩트체크 완료] 엑박 유발하던 카카오 주소 폐기하고, 업타임 100% 보장되는 구글 공식 컬러 핀 마커 이미지로 강제 전환!
 const markerImageSettings = {
-    "식물": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) }, // 노란색
-    "동물": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },    // 빨간색
-    "곤충": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) },   // 파란색
-    "기타": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }   // 초록색
+    "생산자": { src: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", size: new kakao.maps.Size(32, 32) }, // 초록색
+    "소비자": { src: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png", size: new kakao.maps.Size(32, 32) },    // 노란색
+    "분해자": { src: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", size: new kakao.maps.Size(32, 32) },   // 빨간색
+    "랜드마크": { src: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png", size: new kakao.maps.Size(32, 32) }   // 파란색
 };
 
 // 이미지 압축기
