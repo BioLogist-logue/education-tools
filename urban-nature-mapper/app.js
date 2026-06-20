@@ -1,12 +1,18 @@
 // ==========================================
-// 🛡️ [수정된 방어막] 카카오 지도 타일 크기는 건드리지 않고, 깨짐 현상만 막습니다!
+// 🛡️ [모바일 찢어짐 방지 철갑 쉴드] 
 // ==========================================
 const mapShield = document.createElement('style');
-mapShield.innerHTML = `#map img { max-width: none !important; max-height: none !important; }`;
+mapShield.innerHTML = `
+#map { overflow: hidden !important; }
+#map img { 
+    max-width: none !important; 
+    max-height: none !important; 
+    box-sizing: content-box !important;
+}
+`;
 document.head.appendChild(mapShield);
 
-
-// 1. 파이어베이스 세팅
+// 1. 파이어베이스 세팅 완벽 바인딩
 const firebaseConfig = {
   apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
   authDomain: "urban-nature-mapper.firebaseapp.com",
@@ -16,7 +22,11 @@ const firebaseConfig = {
   appId: "1:586767094407:web:3650c6b4302ddcc52f1e22",
   measurementId: "G-GJXKEMTHD7"
 };
-firebase.initializeApp(firebaseConfig);
+
+// 중복 초기화 방지
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 // 전역 상태 변수
@@ -24,7 +34,7 @@ let allMarkersList = [];
 let currentFilter = "all"; 
 let isInitialLoad = true; 
 
-// ⭕ [신기술 적용] 외부 이미지 URL 엑박 오류를 영구 박멸하기 위해, 핀 그림(SVG) 자체를 문자로 하드코딩!
+// ⭕ [신기술 적용] 외부 이미지 URL 엑박 영구 박멸용 SVG 하드코딩!
 const svgPins = {
     "생산자": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 36%22%3E%3Cpath fill%3D%22%232e7d32%22 d%3D%22M12 0C5.373 0 0 5.373 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z%22%2F%3E%3C%2Fsvg%3E",
     "소비자": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 36%22%3E%3Cpath fill%3D%22%23ffeb3b%22 d%3D%22M12 0C5.373 0 0 5.373 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z%22%2F%3E%3C%2Fsvg%3E",
@@ -67,6 +77,22 @@ const mapOption = {
 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
+// 🌟 [핵심 처방전: 모바일 호흡기 장착!] 🌟
+// 모바일 화면 주소창이 접히거나/펴질 때 지도가 찢어지는 것을 막는 공식 옵저버
+if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+        const currentCenter = map.getCenter(); // 중심점 기억
+        map.relayout(); // 퍼즐 강제 재조립
+        map.setCenter(currentCenter); // 중심점 복원
+    });
+    resizeObserver.observe(mapContainer);
+}
+
+// 모바일 네트워크 지연으로 인한 초기 깨짐 방지용 3연단 콤보!
+setTimeout(() => map.relayout(), 500);
+setTimeout(() => map.relayout(), 1000);
+setTimeout(() => map.relayout(), 2000);
+
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
         if (allMarkersList.length === 0) {
@@ -75,7 +101,7 @@ if (navigator.geolocation) {
     });
 }
 
-// 3. 지도 클릭 시 신규 핀 위치 배정 (순정 기능 복구로 버블링 문제 원천 해결)
+// 3. 지도 클릭 시 신규 핀 위치 배정
 let currentMarker = null;
 kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
     const latlng = mouseEvent.latLng; 
@@ -203,6 +229,7 @@ db.collection("urban_nature").onSnapshot((snapshot) => {
         });
         if (hasValidMarkers) {
             map.setBounds(bounds); 
+            map.relayout(); // 초기 바운딩 후 리레이아웃
         }
         isInitialLoad = false; 
     }
@@ -217,17 +244,15 @@ function removeMarkerFromMap(id) {
     }
 }
 
-// 6. 🌟 [궁극의 무결점 렌더링] '진짜 마커'를 생성하여 모든 에러와 버블링을 박멸합니다!
+// 6. 🌟 [궁극의 무결점 렌더링] 진짜 마커로 정보창 버블링 에러 종결!
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
     const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
     const svgDataUri = svgPins[data.category] || svgPins["랜드마크"];
     
-    // SVG 벡터 이미지를 카카오 순정 마커 이미지로 변환 (절대 안 깨짐!)
     const markerImage = new kakao.maps.MarkerImage(svgDataUri, new kakao.maps.Size(26, 38));
 
-    // 오버레이가 아닌 순정 Marker 객체 사용! (kd 에러 영구 소멸!)
     const marker = new kakao.maps.Marker({
         position: pos,
         image: markerImage,
@@ -238,7 +263,7 @@ function createEcoMarker(id, data) {
 
     const infowindow = new kakao.maps.InfoWindow({
         content: `
-            <div class="infowindow-content" style="padding:10px; min-width:160px;">
+            <div class="infowindow-content" style="padding:10px; min-width:160px; z-index:100;">
                 <div class="infowindow-title" style="font-weight:bold; margin-bottom:5px;">[${data.category || '기타'}] ${data.creatureName}</div>
                 <div class="infowindow-meta" style="font-size:11px; color:#666; margin-bottom:5px;">📍 ${data.discoveryLocation} (${data.studentInfo})</div>
                 ${imageHtml}
@@ -251,9 +276,9 @@ function createEcoMarker(id, data) {
         removable: true
     });
 
-    // ⭕ 카카오 순정 마커 이벤트 리스너 사용 (버블링 원천 차단 + 정보창 100% 팝업)
+    // 진짜 카카오 마커 클릭 이벤트! 
     kakao.maps.event.addListener(marker, 'click', function() {
-        infowindow.open(map, marker); // 진짜 마커를 넣었으므로 절대 에러가 나지 않습니다!
+        infowindow.open(map, marker); 
     });
 
     allMarkersList.push({ id, category: data.category, markerInstance: marker, windowInstance: infowindow, data });
