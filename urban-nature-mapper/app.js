@@ -1,15 +1,107 @@
 // ==========================================
-// 🛡️ [원인 규명 완벽 해결] 카카오맵 타일 찢어짐(4분할) 원천 차단 쉴드!
+// 🛡️ [모바일 최적화 UI & 타일 찢어짐 방지 쉴드]
 // ==========================================
-const masterShield = document.createElement('style');
-masterShield.innerHTML = `
-    /* 카카오맵 타일 퍼즐이 벌어지는 현상을 막는 공식 처방전 */
+const mobileUIStyle = document.createElement('style');
+mobileUIStyle.innerHTML = `
+    /* 카카오맵 타일 찢어짐 방지 */
     #map, #map * { box-sizing: content-box !important; }
     #map img { max-width: none !important; max-height: none !important; }
+    
+    /* 🌟 정보창(팝업) 반응형 디자인: 데스크탑에서는 크게! */
+    .info-container { padding: 15px; width: 280px; font-family: sans-serif; line-height: 1.5; }
+    .info-title { font-size: 18px; font-weight: bold; color: #2e7d32; margin-bottom: 8px; border-bottom: 2px solid #2e7d32; padding-bottom: 5px; }
+    .info-meta { font-size: 14px; color: #555; margin-bottom: 10px; }
+    .info-img { width: 100%; max-height: 200px; object-fit: cover; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; display: block; }
+    .info-desc { font-size: 15px; color: #222; margin-bottom: 15px; background: #f5f5f5; padding: 10px; border-radius: 6px; }
+    .info-btn { flex: 1; cursor: pointer; padding: 10px; font-size: 14px; font-weight: bold; color: white; border: none; border-radius: 5px; }
+    
+    /* 📱 모바일 환경 (화면 폭 768px 이하) 최적화 */
+    @media (max-width: 768px) {
+        /* 정보창 크기 콤팩트하게 줄임 */
+        .info-container { padding: 10px; width: 200px; }
+        .info-title { font-size: 14px; margin-bottom: 5px; padding-bottom: 3px; }
+        .info-meta { font-size: 12px; margin-bottom: 6px; }
+        .info-img { max-height: 120px; margin: 6px 0; }
+        .info-desc { font-size: 12px; padding: 8px; margin-bottom: 10px; }
+        .info-btn { padding: 6px; font-size: 12px; }
+        
+        /* 폼 영역을 지도를 가리지 않는 '오버레이 팝업'으로 변신! */
+        #sidebar {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 85vw !important;
+            max-height: 80vh !important;
+            overflow-y: auto !important;
+            z-index: 9999 !important;
+            background: white !important;
+            border-radius: 12px !important;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.4) !important;
+            display: none; /* 기본으로 숨겨서 지도를 꽉 채움 */
+            padding: 20px !important;
+        }
+        /* 팝업 떴을 때 뒤에 깔리는 어두운 배경 */
+        #mobile-overlay-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5); z-index: 9998; display: none;
+        }
+        /* 모바일 전용 작고 예쁜 둥근 버튼 */
+        #mobile-toggle-btn {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+            z-index: 9997; background-color: #2e7d32; color: white; border: none; border-radius: 30px;
+            padding: 10px 20px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+    }
+    
+    /* 💻 컴퓨터 환경 (769px 이상) 에서는 원래대로 폼 노출, 모바일 버튼 숨김 */
+    @media (min-width: 769px) {
+        #sidebar { display: block !important; position: static !important; transform: none !important; width: auto !important; box-shadow: none !important; }
+        #mobile-toggle-btn { display: none !important; }
+        #mobile-overlay-bg { display: none !important; }
+    }
 `;
-document.head.appendChild(masterShield);
+document.head.appendChild(mobileUIStyle);
 
+// ==========================================
+// 📱 모바일 팝업 폼 컨트롤러
+// ==========================================
+const toggleBtn = document.createElement('button');
+toggleBtn.id = 'mobile-toggle-btn';
+toggleBtn.innerHTML = '🌱 생물 등록하기';
+document.body.appendChild(toggleBtn);
+
+const overlayBg = document.createElement('div');
+overlayBg.id = 'mobile-overlay-bg';
+document.body.appendChild(overlayBg);
+
+let isSidebarOpen = false;
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    isSidebarOpen = !isSidebarOpen;
+    if (isSidebarOpen) {
+        sidebar.style.setProperty('display', 'block', 'important');
+        overlayBg.style.display = 'block';
+        toggleBtn.innerHTML = '❌ 닫기';
+        toggleBtn.style.backgroundColor = '#d32f2f';
+    } else {
+        sidebar.style.setProperty('display', 'none', 'important');
+        overlayBg.style.display = 'none';
+        toggleBtn.innerHTML = '🌱 생물 등록하기';
+        toggleBtn.style.backgroundColor = '#2e7d32';
+    }
+    // 레이아웃 변경 시 카카오맵 강제 리프레시!
+    setTimeout(() => { if (typeof map !== 'undefined') map.relayout(); }, 300);
+}
+
+toggleBtn.onclick = toggleSidebar;
+overlayBg.onclick = toggleSidebar; // 어두운 배경 누르면 폼 닫힘
+
+
+// ==========================================
 // 1. 파이어베이스 세팅
+// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCQn32Fpt_Wxl0K1mw_SgKIZr1tERqte_I",
   authDomain: "urban-nature-mapper.firebaseapp.com",
@@ -25,12 +117,11 @@ if (!firebase.apps.length) {
 }
 const db = firebase.firestore();
 
-// 전역 상태 변수
 let allMarkersList = [];
 let currentFilter = "all"; 
 let isInitialLoad = true; 
 
-// SVG 마커 데이터
+// SVG 마커 데이터 (절대 깨지지 않음)
 const svgPins = {
     "생산자": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 36%22%3E%3Cpath fill%3D%22%232e7d32%22 d%3D%22M12 0C5.373 0 0 5.373 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z%22%2F%3E%3C%2Fsvg%3E",
     "소비자": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 36%22%3E%3Cpath fill%3D%22%23ffeb3b%22 d%3D%22M12 0C5.373 0 0 5.373 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z%22%2F%3E%3C%2Fsvg%3E",
@@ -38,28 +129,6 @@ const svgPins = {
     "랜드마크": "data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 24 36%22%3E%3Cpath fill%3D%22%231565c0%22 d%3D%22M12 0C5.373 0 0 5.373 0 12c0 8.4 12 24 12 24s12-15.6 12-24c0-6.627-5.373-12-12-12zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z%22%2F%3E%3C%2Fsvg%3E"
 };
 
-// 🌟 [추가 기능] 모바일용 폼 접기/펴기 버튼 자동 생성 로직
-const formEl = document.getElementById('observation-form');
-const toggleBtn = document.createElement('button');
-toggleBtn.type = 'button'; // 폼 제출 방지
-toggleBtn.innerHTML = "🔽 생물 등록창 닫기 (지도 크게 보기)";
-toggleBtn.style.cssText = "width:100%; padding:12px; margin-bottom:15px; background-color:#2e7d32; color:white; font-size:16px; font-weight:bold; border:none; border-radius:8px; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2);";
-
-// 폼 바로 위에 버튼 삽입
-formEl.parentNode.insertBefore(toggleBtn, formEl);
-
-let isFormVisible = true;
-toggleBtn.addEventListener('click', () => {
-    isFormVisible = !isFormVisible;
-    formEl.style.display = isFormVisible ? "block" : "none";
-    toggleBtn.innerHTML = isFormVisible ? "🔽 생물 등록창 닫기 (지도 크게 보기)" : "▶️ 생물 등록창 열기 (생물 등록하기)";
-    
-    // 폼이 접히면서 지도 영역 크기가 변하므로, 0.3초 뒤에 카카오맵 사이즈 리프레시!
-    setTimeout(() => { map.relayout(); }, 300);
-});
-
-
-// 이미지 압축기
 function compressAndToBase64(file, maxWidth, quality) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -81,12 +150,13 @@ function compressAndToBase64(file, maxWidth, quality) {
     });
 }
 
+// ==========================================
 // 2. 카카오 지도 안착
+// ==========================================
 const mapContainer = document.getElementById('map');
 const mapOption = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 3 };
 const map = new kakao.maps.Map(mapContainer, mapOption);
 
-// 화면 크기가 바뀔 때마다 찢어짐 방지용 리레이아웃
 window.addEventListener('resize', () => map.relayout());
 
 if (navigator.geolocation) {
@@ -110,14 +180,20 @@ kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
     document.getElementById('lng').value = latlng.getLng();
     document.getElementById('display-lat').innerText = latlng.getLat().toFixed(6);
     document.getElementById('display-lng').innerText = latlng.getLng().toFixed(6);
+    
+    // 모바일 환경에서 핀을 꽂으면 폼 열기 유도
+    if (window.innerWidth <= 768 && !isSidebarOpen) {
+        toggleSidebar();
+    }
 });
 
 // 4. 데이터 저장 및 수정(Submit)
+const form = document.getElementById('observation-form');
 const submitBtn = document.getElementById('submit-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const photoUploadInput = document.getElementById('photo-upload');
 
-formEl.addEventListener('submit', async function(e) {
+form.addEventListener('submit', async function(e) {
     e.preventDefault(); 
     const lat = document.getElementById('lat').value;
     const lng = document.getElementById('lng').value;
@@ -169,7 +245,7 @@ formEl.addEventListener('submit', async function(e) {
 });
 
 function resetFormState() {
-    formEl.reset();
+    form.reset();
     document.getElementById('edit-doc-id').value = "";
     if (currentMarker) currentMarker.setMap(null); 
     currentMarker = null;
@@ -179,11 +255,14 @@ function resetFormState() {
     submitBtn.style.backgroundColor = "#2e7d32";
     submitBtn.innerText = "생태 지도에 등록하기 🚀";
     cancelEditBtn.style.display = "none";
+    
+    // 등록이 끝나면 모바일에서는 지도를 시원하게 볼 수 있게 폼을 자동으로 닫습니다!
+    if (window.innerWidth <= 768 && isSidebarOpen) toggleSidebar();
 }
 
 cancelEditBtn.addEventListener('click', resetFormState);
 
-// 5. 리얼타임 데이터 동기화 엔진
+// 5. 리얼타임 데이터 동기화
 db.collection("urban_nature").onSnapshot((snapshot) => {
     const bounds = new kakao.maps.LatLngBounds();
     let hasValidMarkers = false;
@@ -214,13 +293,13 @@ function removeMarkerFromMap(id) {
     }
 }
 
-// 6. 🌟 정보창 2배 확대 & 에러 없는 순정 마커
+// 6. 🌟 반응형 클래스가 적용된 마커 빌더
 function createEcoMarker(id, data) {
     if (!data.latitude || !data.longitude) return;
 
     const pos = new kakao.maps.LatLng(data.latitude, data.longitude);
     const svgDataUri = svgPins[data.category] || svgPins["랜드마크"];
-    const markerImage = new kakao.maps.MarkerImage(svgDataUri, new kakao.maps.Size(32, 46)); // 마커 아이콘 크기도 살짝 키웠습니다
+    const markerImage = new kakao.maps.MarkerImage(svgDataUri, new kakao.maps.Size(30, 42)); 
 
     const marker = new kakao.maps.Marker({
         position: pos,
@@ -228,26 +307,23 @@ function createEcoMarker(id, data) {
         map: currentFilter === "all" || currentFilter === data.category ? map : null
     });
 
-    // ⭕ [요청 반영] 정보창 내부 영역 2배 뻥튀기! (폭 280px, 글씨체 및 여백 대폭 상향)
-    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" style="width:100%; max-height:200px; object-fit:cover; margin:10px 0; border-radius:8px; border:1px solid #ddd;">` : ``;
+    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="info-img">` : ``;
 
     const infowindow = new kakao.maps.InfoWindow({
         content: `
-            <div class="infowindow-content" style="padding:15px; width:280px; font-family:sans-serif; line-height:1.5;">
-                <div class="infowindow-title" style="font-size:18px; font-weight:bold; color:#2e7d32; margin-bottom:8px; border-bottom:2px solid #2e7d32; padding-bottom:5px;">
-                    [${data.category || '기타'}] ${data.creatureName}
-                </div>
-                <div class="infowindow-meta" style="font-size:14px; color:#555; margin-bottom:10px;">
+            <div class="info-container">
+                <div class="info-title">[${data.category || '기타'}] ${data.creatureName}</div>
+                <div class="info-meta">
                     📍 <strong>장소:</strong> ${data.discoveryLocation}<br>
                     🧑‍🎓 <strong>발견자:</strong> ${data.studentInfo}
                 </div>
                 ${imageHtml}
-                <div style="font-size:15px; color:#222; margin-bottom:15px; background:#f5f5f5; padding:10px; border-radius:6px;">
+                <div class="info-desc">
                     <strong>📝 특징 및 관찰내용:</strong><br>${data.observationDetails}
                 </div>
                 <div class="action-buttons" style="display:flex; gap:8px;">
-                    <button class="action-btn edit-btn" onclick="triggerEditMode('${id}')" style="flex:1; cursor:pointer; padding:10px; font-size:14px; font-weight:bold; background:#ffa000; color:white; border:none; border-radius:5px;">✏️ 정보 수정</button>
-                    <button class="action-btn del-btn" onclick="triggerDeletePost('${id}')" style="flex:1; cursor:pointer; padding:10px; font-size:14px; font-weight:bold; background:#d32f2f; color:white; border:none; border-radius:5px;">❌ 핀 삭제</button>
+                    <button class="info-btn edit-btn" onclick="triggerEditMode('${id}')" style="background:#ffa000;">✏️ 수정</button>
+                    <button class="info-btn del-btn" onclick="triggerDeletePost('${id}')" style="background:#d32f2f;">❌ 삭제</button>
                 </div>
             </div>`,
         removable: true
@@ -284,9 +360,8 @@ window.triggerEditMode = function(id) {
     submitBtn.innerText = "수정 완료하기 ✏️";
     cancelEditBtn.style.display = "block";
     
-    // 폼이 접혀있다면 강제로 펴주기!
-    if (!isFormVisible) { toggleBtn.click(); }
-    
+    // 모바일 폼이 닫혀있다면 강제로 열어줍니다!
+    if (window.innerWidth <= 768 && !isSidebarOpen) toggleSidebar();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
