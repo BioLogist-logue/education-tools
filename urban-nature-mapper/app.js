@@ -1,9 +1,10 @@
 // ==========================================
-// 🛡️ [초특급 방어막] 지도를 확대/축소할 때 타일이 깨지거나 하얗게 변하는 현상 원천 차단!
+// 🛡️ [수정된 방어막] 카카오 지도 타일 크기는 건드리지 않고, 깨짐 현상만 막습니다!
 // ==========================================
 const mapShield = document.createElement('style');
-mapShield.innerHTML = `#map img { max-width: none !important; max-height: none !important; width: auto !important; height: auto !important; min-width: 0 !important; min-height: 0 !important; }`;
+mapShield.innerHTML = `#map img { max-width: none !important; max-height: none !important; }`;
 document.head.appendChild(mapShield);
+
 
 // 1. 파이어베이스 세팅
 const firebaseConfig = {
