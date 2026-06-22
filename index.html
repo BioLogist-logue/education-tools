@@ -169,13 +169,69 @@
         .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
         .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--accent-gray); }
 
-         /* 팝업 모달 공통 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; z-index: 1000; justify-content: center; align-items: center; }
+        /* 팝업 모달 공통 스타일 (주인님 감성에 맞춘 고급 다크 테마) */
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(5px);
+            display: none; 
+            z-index: 1000; 
+            justify-content: center; 
+            align-items: center; 
+        }
         .modal-overlay.active { display: flex; }
-        .modal-body { background: white; width: 95%; max-width: 700px; max-height: 85vh; border-radius: 20px; position: relative; overflow-y: auto; padding: 25px; color: #111; }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #333; font-weight: bold; z-index: 10; }
+        .modal-body { 
+            background: var(--bg-card); 
+            width: 90%; 
+            max-width: 440px; 
+            border-radius: 24px; 
+            position: relative; 
+            padding: 35px 25px; 
+            color: var(--text-title); 
+            border: 1px solid #334155;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalFadeIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .close-modal { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            font-size: 24px; 
+            cursor: pointer; 
+            color: var(--text-desc); 
+            font-weight: bold; 
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: var(--accent-pink); }
+        .modal-icon { font-size: 45px; margin-bottom: 15px; }
+        .modal-title { font-size: 20px; margin: 0 0 10px 0; font-weight: 700; color: var(--text-title); }
+        .modal-text { font-size: 15px; line-height: 1.6; margin: 0 0 25px 0; color: var(--text-desc); }
+        .modal-btn { 
+            background: linear-gradient(to right, #3b82f6, #8b5cf6); 
+            color: white; 
+            border: none; 
+            padding: 10px 30px; 
+            border-radius: 12px; 
+            font-size: 14px;
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .modal-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
 
-        /* 하단 푸터 스타일 복구 및 고정 해제 */
+        /* 하단 푸터 스타일 */
         .portal-footer {
             margin-top: 60px;
             padding: 24px 0;
@@ -256,7 +312,7 @@
              <div class="go-btn">실험실 입장하기 →</div>
         </a>
 
-        <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+        <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
             <div class="tool-content">
                 <span class="badge badge-ready">Coming Soon</span>
                 <h3>🔒 준비 중인 실험실</h3>
@@ -265,7 +321,7 @@
             <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
         </a>
 
-         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
             <div class="tool-content">
                 <span class="badge badge-ready">Coming Soon</span>
                 <h3>🔒 준비 중인 실험실</h3>
@@ -274,7 +330,7 @@
             <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
         </a>
 
-         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
             <div class="tool-content">
                 <span class="badge badge-ready">Coming Soon</span>
                 <h3>🔒 준비 중인 실험실</h3>
@@ -283,7 +339,7 @@
             <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
         </a>
 
-         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
             <div class="tool-content">
                 <span class="badge badge-ready">Coming Soon</span>
                 <h3>🔒 준비 중인 실험실</h3>
@@ -292,7 +348,7 @@
             <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
         </a>
 
-         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
             <div class="tool-content">
                 <span class="badge badge-ready">Coming Soon</span>
                 <h3>🔒 준비 중인 실험실</h3>
@@ -307,6 +363,41 @@
         <p>© Copyright 2026 All rights reserved by BioLogist</p>
     </footer>
 </div>
+
+<div id="customModal" class="modal-overlay">
+    <div class="modal-body">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-icon">🧪</div>
+        <h3 class="modal-title">Lab Notice</h3>
+        <p id="modalMessage" class="modal-text">안내 메시지 내용</p>
+        <button class="modal-btn" onclick="closeModal()">확인</button>
+    </div>
+</div>
+
+<script>
+    // 모달 열기 함수
+    function customAlert(message) {
+        const modal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
+        
+        modalMessage.innerText = message; // 메시지 변경
+        modal.classList.add('active');   // 모달 보이기
+    }
+
+    // 모달 닫기 함수
+    function closeModal() {
+        const modal = document.getElementById('customModal');
+        modal.classList.remove('active'); // 모달 숨기기
+    }
+
+    // 모달 바깥쪽 어두운 배경 클릭 시 닫히는 기능
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('customModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+</script>
     
 </body>
 </html>
