@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지역 생태계 맵핑 (Urban Nature Mapper)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        /* 사이드바 스타일 */
+        #sidebar {
+            width: 400px;
+            background-color: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        /* 폼 스타일 */
+        #observation-form {
+            padding: 15px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #444;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group textarea,
+        .form-group input[type="file"],
+        .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="password"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+
+        .coordinate-box {
+            background-color: #f9f9f9;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px dashed #ccc;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .coordinate-box span {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1b5e20;
+        }
+
+        /* 지도 영역 스타일 */
+        #map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background-color: #eee;
+        }
+
+        /* 지도 위 실시간 필터 버튼 패널 */
+        #filter-panel {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 20;
+            display: flex;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            width: auto;
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #2e7d32;
+            color: white;
+            border-color: #2e7d32;
+        }
+
+        /* 인포윈도우 관리 및 수정/삭제 버튼 스타일 */
+        .infowindow-content {
+            padding: 10px;
+            width: 250px;
+            font-size: 13px;
+        }
+
+        .infowindow-content img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .infowindow-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+
+        .infowindow-meta {
+            font-size: 11px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+            border-top: 1px dashed #eee;
+            padding-top: 6px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 4px;
+            font-size: 11px;
+            border-radius: 4px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .edit-btn { background-color: #ffa000; }
+        .edit-btn:hover { background-color: #f57c00; }
+        .del-btn { background-color: #d32f2f; }
+        .del-btn:hover { background-color: #c62828; }
+
+        /* 핸드폰 모바일 화면 레이아웃 최적화 */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #sidebar { width: 100%; height: 45vh; }
+            #map-container { width: 100%; height: 55vh; }
+            #filter-panel {
+                top: 8px; left: 8px; padding: 4px;
+                max-width: calc(100% - 16px); overflow-x: auto;
+            }
+            .filter-btn { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=7b524f0e08bfd50ca987b189ec057695"></script>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="header">
+            <p>© Copyright 2026 All rights reserved by BioLogist</p>
+            <h1>🌿 어반 네이처 맵퍼</h1>
+            <p>우리 학교 주변의 도시 생태계를 기록해봐요!</p>
+        </div>
+        
+        <form id="observation-form">
+            <input type="hidden" id="edit-doc-id">
+
+            <div class="form-group">
+                <label for="student-info">학번 / 이름</label>
+                <input type="text" id="student-info" placeholder="예: 10101 홍길동" required>
+            </div>
+
+            <div class="form-group">
+                <label for="creature-category">생물 분류 선택</label>
+                <select id="creature-category" required>
+                    <option value="생산자">🌿 생산자 (초록색 마커)</option>
+                    <option value="소비자">🐦 소비자 (노란색 마커)</option>
+                    <option value="분해자">🐛 분해자 (빨간색 마커)</option>
+                    <option value="랜드마크">🔍 랜드마크 (파란색 마커)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="creature-name">발견한 생물 이름</label>
+                <input type="text" id="creature-name" placeholder="예: 보도블록 질경이, 참새" required>
+            </div>
+
+            <div class="form-group">
+                <label for="discovery-location">발견 장소 설명</label>
+                <input type="text" id="discovery-location" placeholder="예: 본관 뒤편 화단" required>
+            </div>
+
+            <div class="form-group">
+                <label for="observation-details">관찰 내용 및 생태적 특징</label>
+                <textarea id="observation-details" rows="2" placeholder="예: 콘크리트 틈새에 적응함." required></textarea>
+            </div>
+
+            <div class="form-group" id="photo-group">
+                <label for="photo-upload">생물 사진 올리기</label>
+                <input type="file" id="photo-upload" accept="image/*">
+                <small style="color:#888; font-size:11px;">* 수정 시 사진을 안 올리면 기존 사진이 유지됩니다.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="post-password">비밀번호 (숫자 4자리)</label>
+                <input type="password" id="post-password" placeholder="수정/삭제 시 필요합니다" maxlength="4" required>
+            </div>
+
+            <div class="coordinate-box">
+                📍 선택된 위치<br>
+                위도: <span id="display-lat">지도에서 위치를 클릭하세요</span><br>
+                경도: <span id="display-lng">지도에서 위치를 클릭하세요</span>
+            </div>
+
+            <input type="hidden" id="lat">
+            <input type="hidden" id="lng">
+
+            <button type="submit" id="submit-btn">생태 지도에 등록하기 🚀</button>
+            <button type="button" id="cancel-edit-btn" style="background-color:#757575; margin-top:5px; display:none;">수정 취소하기 ↩️</button>
+        </form>
+    </div>
+
+    <div id="map-container">
+        <div id="filter-panel">
+            <button class="filter-btn active" data-category="all">전체보기 🌈</button>
+            <button class="filter-btn" data-category="생산자">생산자 🌿</button>
+            <button class="filter-btn" data-category="소비자">소비자 🐦</button>
+            <button class="filter-btn" data-category="분해자">분해자 🐛</button>
+            <button class="filter-btn" data-category="랜드마크">랜드마크 🔍</button>
+        </div>
+        
+        <div id="map"></div>
+    </div>
+
+    <script src="app.js"></script>
+    
+    <!-- ⭕ [초특급 업그레이드] 브라우저 주소 노출 없는 커스텀 모달 창 -->
+    <div id="bio-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+        <div id="bio-modal-box" style="background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 360px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; animation: bioModalShow 0.2s ease-out;">
+            <p id="bio-modal-message" style="font-size: 14px; font-weight: 500; color: #333; line-height: 1.5; margin-bottom: 20px; white-space: pre-wrap; word-break: keep-all;"></p>
+            
+            <!-- 비밀번호 입력칸 (Prompt일 때만 등장) -->
+            <input type="password" id="bio-modal-input" placeholder="숫자 4자리 입력" style="display: none; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 16px; font-weight: bold; letter-spacing: 6px; margin-bottom: 20px;" maxlength="4">
+            
+            <!-- 하단 버튼 세트 -->
+            <div style="display: flex; gap: 8px; justify-content: center;">
+                <button id="bio-modal-btn-cancel" style="display: none; background: #e0e0e0; color: #444; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; width: 50%;">취소</button>
+                <button id="bio-modal-btn-ok" style="background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; width: 50%;">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 팝업 등장 시 사르륵 커지는 모션 애니메이션 효과 */
+        @keyframes bioModalShow {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+
+    <script src="app.js"></script>
+</body>
+</html>
