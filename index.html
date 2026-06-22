@@ -15,6 +15,7 @@
             --accent-blue: #3b82f6;
             --accent-green: #10b981;
             --accent-purple: #8b5cf6;
+            --accent-pink: #f43f5e;
             --accent-gray: #64748b;
         }
 
@@ -25,13 +26,54 @@
             margin: 0;
             padding: 40px 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
         }
 
         .portal-container {
             max-width: 1000px;
             margin: 0 auto;
             width: 100%;
+        }
+
+        /* 상단 소셜/블로그 바로가기 버튼 영역 */
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-title);
+            background-color: var(--bg-card);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        /* 블로그 버튼 호버 효과 */
+        .nav-btn-blog:hover {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+        }
+
+        /* 인스타 버튼 호버 효과 */
+        .nav-btn-insta:hover {
+            border-color: var(--accent-pink);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.4);
         }
 
         /* 대문 헤더 스타일 */
@@ -125,12 +167,37 @@
         }
         .badge-bio { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
         .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
-        .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--text-muted); }
+        .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--accent-gray); }
+
+        /* 하단 푸터 스타일 복구 및 고정 해제 */
+        .portal-footer {
+            margin-top: 60px;
+            padding: 24px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+        }
+
+        .portal-footer p {
+            font-size: 12px;
+            color: var(--accent-gray);
+            margin: 0;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
 
 <div class="portal-container">
+    <div class="top-nav">
+        <a href="https://blog.naver.com/biologue_" target="_blank" rel="noopener noreferrer" class="nav-btn nav-btn-blog">
+            🌐 개발자 블로그
+        </a>
+        <a href="https://www.instagram.com/biologist_logue" target="_blank" rel="noopener noreferrer" class="nav-btn nav-btn-insta">
+            📸 인스타그램
+        </a>
+    </div>
+
     <header>
         <h1>🔬 Interactive Science Lab</h1>
         <p>수업을 더 직관적으로, 데이터로 시각화하는 과학 실험실</p>
@@ -189,16 +256,15 @@
                 <h3>🔒 준비 중인 실험실</h3>
                 <p>미래의 기발한 과학 교육용 시뮬레이터가 들어설 자리입니다. 콘텐츠가 생기면 잠금이 해제됩니다.</p>
             </div>
-            <div class="go-btn" style="color: var(--text-muted);">준비 중...</div>
+            <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
         </a>
 
     </main>
+
+    <footer class="portal-footer">
+        <p>© Copyright 2026 All rights reserved by BioLogist</p>
+    </footer>
 </div>
     
 </body>
 </html>
-    <footer class="fixed bottom-0 left-0 right-0 h-10 bg-slate-950 bg-opacity-90 flex items-center justify-center z-[130] border-t border-white/5">
-        <p class="text-[10px] text-slate-500 font-medium">
-            © Copyright 2026 All rights reserved by BioLogist 
-        </p>
-    </footer>
