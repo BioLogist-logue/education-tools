@@ -270,14 +270,17 @@
         const SUPABASE_URL = 'https://fjcddgvhsauwyqzfrmur.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY2RkZ3Zoc2F1d3lxemZybXVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODQwNTQsImV4cCI6MjA5NjU2MDA1NH0.KR3SiOsZl4LBI4hL4YYuPdBIXOP1C2kiwZ5uExohZZI';
         
-        let supabase = null;
+        let dbClient = null; // 충돌 방지를 위해 이름 변경! (supabase -> dbClient)
+
+        // 스크립트 사망 방지용 안전 장치 (try-catch)
         try {
-            // 수파베이스 초기화 시 에러가 나도 게임이 멈추지 않도록 안전장치(try-catch) 추가!
             if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.warn("네트워크 지연으로 수파베이스를 로딩하지 못했지만, 오프라인으로 게임은 정상 구동됩니다.");
             }
         } catch (error) {
-            console.error("수파베이스 연결 문제 발생:", error);
+            console.error("수파베이스 연동 문제 발생:", error);
         }
 
         let currentNickname = "";
@@ -295,13 +298,13 @@
             modal.style.display = 'flex';
             list.innerHTML = '<li style="justify-content:center; color:#a0aec0;">데이터를 맹렬히 불러오는 중... 🏃‍♂️💨</li>';
 
-            if (!supabase) {
+            if (!dbClient) {
                 list.innerHTML = '<li style="justify-content:center; color:#ff5555;">서버(Supabase) 연동 상태를 확인해주세요!</li>';
                 return;
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await dbClient
                     .from('central_dogma_scores')
                     .select('*')
                     .order('score', { ascending: false })
@@ -330,15 +333,15 @@
         // 점수 저장
         async function saveScoreToSupabase() {
             const statusDiv = document.getElementById('save-status');
-            if (!supabase) {
-                statusDiv.innerText = "⚠️ 서버 연동이 되어있지 않아 점수가 저장되지 않습니다.";
+            if (!dbClient) {
+                statusDiv.innerText = "⚠️ 서버 연동이 되어있지 않아 점수가 오프라인에만 저장됩니다.";
                 return;
             }
 
             statusDiv.innerText = "명예의 전당에 점수를 기록하는 중... ✍️";
             
             try {
-                const { error } = await supabase
+                const { error } = await dbClient
                     .from('central_dogma_scores')
                     .insert([{ nickname: currentNickname, score: score }]);
                 
