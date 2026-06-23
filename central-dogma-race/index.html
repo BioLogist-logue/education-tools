@@ -1,3 +1,31 @@
+// ==========================================
+// 🛡️ [W3C 표준 최첨단 보안 캡처링 쉴드] 
+// 브라우저 하드웨어 신호가 도달하기 전 공중에서 우클릭과 F12를 완전 파괴합니다.
+// ==========================================
+(function() {
+    // 1. 우클릭 원천 차단 (true 지정을 통해 캡처링 단계에서 가로챔)
+    window.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }, true);
+
+    // 2. 개발자 도구 단축키 전면 마비 (e.key 최신 표준 규격 적용)
+    window.addEventListener('keydown', function(e) {
+        // F12 차단
+        if (e.key === 'F12') {
+            e.preventDefault(); e.stopPropagation(); return false;
+        }
+        // Ctrl + Shift + I (개발자도구) / J (콘솔창) / C (요소검사) 차단
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+            e.preventDefault(); e.stopPropagation(); return false;
+        }
+        // Ctrl + U (페이지 소스 보기) 차단
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault(); e.stopPropagation(); return false;
+        }
+    }, true); // 👈 true 옵션이 핵심! 신호가 하위 엘리먼트로 내려가기 전에 차단!
+})();
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
