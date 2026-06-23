@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>센트럴 도그마: 완벽 마스터 (전사 + 번역)</title>
+    <title>전사&번역 RACE: 완벽 마스터</title>
     
     <script>
     (function() {
@@ -220,7 +220,7 @@
         <div class="modal-content">
             <h3>📖 게임 방법</h3>
             <p><b>[1단계: DNA 전사]</b><br>
-            아래쪽 가닥이 노란색 타깃 원에 올 때, <span style="color:#00ffcc;">상보적인 RNA 염기</span>를 타이핑하세요!<br>
+            주형가닥의 뉴클레오타이드가 노란색 타깃 원에 올 때, <span style="color:#00ffcc;">상보적인 RNA 염기</span>를 타이핑하세요!<br>
             (※ A ↔ U / T ↔ A / G ↔ C / C ↔ G)</p>
             <div style="height:1px; background:#1f3d68; margin:15px 0;"></div>
             <p><b>[2단계: 단백질 번역]</b><br>
@@ -258,11 +258,11 @@
         </div>
 
         <div id="title-screen" class="screen active">
-            <h1>🧬 센트럴 도그마 레이스</h1>
+            <h1>🧬 CENTRAL DOGMA RACE</h1>
             <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요 (필수)" maxlength="10">
-            <button class="level-btn" onclick="startGame(5)">🌱 숏 (아미노산 4개 + 종결)</button>
-            <button class="level-btn" onclick="startGame(10)">🌿 미디움 (아미노산 9개 + 종결)</button>
-            <button class="level-btn" onclick="startGame(16)">🌳 롱 (아미노산 15개 + 종결)</button>
+            <button class="level-btn" onclick="startGame(5)">🌱 1단계 (아미노산 4개)</button>
+            <button class="level-btn" onclick="startGame(10)">🌿 2단계 (아미노산 9개)</button>
+            <button class="level-btn" onclick="startGame(16)">🌳 3단계 (아미노산 15개)</button>
             <button class="how-to-btn" onclick="document.getElementById('how-to-modal').style.display='flex'">📖 게임 방법 보기</button>
         </div>
 
@@ -290,7 +290,7 @@
 
         <div id="game-over-screen" class="screen">
             <h1 id="result-title">합성 완료! 🛑</h1>
-            <p id="result-text" style="font-size: 20px; color: #e2e8f0; margin-bottom: 20px; text-align: center;">완벽한 단백질이 탄생했습니다!</p>
+            <p id="result-text" style="font-size: 20px; color: #e2e8f0; margin-bottom: 20px; text-align: center;">성공적으로 단백질이 탄생했습니다!</p>
             <div style="font-size: 30px; color: #00ffcc; margin-bottom: 20px; font-weight: bold;" id="final-score">최종 점수: 0점</div>
             <div id="save-status" style="color:#ffcc00; margin-bottom:20px; font-size:16px;"></div>
             <button class="btn" onclick="resetToTitle()">타이틀로 돌아가기</button>
@@ -381,7 +381,7 @@
                 if (error) throw error;
                 statusDiv.innerText = "🎉 랭킹 등록 완료! 순위표를 확인해보세요!";
             } catch (err) {
-                statusDiv.innerText = `⚠️ 저장 실패: 수파베이스 설정(RLS 등)을 확인해주세요!`;
+                statusDiv.innerText = `⚠️ 저장 실패: 수파베이스 설정을 확인해주세요!`;
                 console.error(err);
             }
         }
@@ -500,7 +500,7 @@
         function startGame(codonCount) {
             const nickInput = document.getElementById('nickname-input').value.trim();
             if(!nickInput) { 
-                document.getElementById('alert-message').innerText = "주인님! 순위에 등록할 닉네임을 꼭 작성해주세요! 📝";
+                document.getElementById('alert-message').innerText = "순위에 등록할 닉네임을 작성해주세요! 📝";
                 document.getElementById('alert-modal').style.display = 'flex';
                 return; 
             }
