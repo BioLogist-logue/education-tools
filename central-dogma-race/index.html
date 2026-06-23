@@ -4,6 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>센트럴 도그마: 완벽 마스터 (전사 + 번역)</title>
+    
+    <script>
+    (function() {
+        // 1. 우클릭 원천 차단
+        window.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+
+        // 2. 개발자 도구 단축키 전면 마비
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'F12') {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+        }, true);
+    })();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
@@ -79,7 +103,7 @@
         #score-box { color: #00ffcc; } #combo-box { color: #ff007c; }
         .home-btn { background: #1f3d68; border: 1px solid #00a2ff; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* 모바일 터치 패드 (전사용) */
+        /* 모바일 터치 패드 */
         #mobile-keyboard {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             display: none; gap: 15px; z-index: 20;
@@ -89,7 +113,7 @@
         }
         .mk-btn:active { background: #ff007c; transform: scale(0.9); }
 
-        /* 번역 (Translation) 스크린 - 2단 분리 수정 */
+        /* 번역 스크린 - 2단 분리 */
         #translation-layout { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 50px 10px 10px 10px; box-sizing: border-box; }
         .tl-top { flex: 0.4; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 2px dashed #31578a; padding-bottom: 10px; margin-bottom: 10px;}
         .tl-bottom { flex: 0.6; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; }
@@ -109,7 +133,7 @@
         }
         .amino-acid { background: #1f3d68; padding: 6px 12px; border-radius: 20px; border: 2px solid #00a2ff; font-size: 14px; font-weight:bold; color: white; animation: popIn 0.3s; }
 
-        /* 클릭 가능한 코돈표 스타일 */
+        /* 클릭 가능한 코돈표 */
         #codon-table-container { width: 100%; max-width: 800px; }
         .codon-table { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 13px; text-align: center; }
         .codon-table th { background: #1f3d68; color: #00ffcc; padding: 5px; border-radius: 4px;}
@@ -142,7 +166,6 @@
         #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
         .btn { background: linear-gradient(135deg, #00ffcc 0%, #00a2ff 100%); border: none; color: #050c1a; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px; }
 
-        /* 반응형 모바일 최적화 */
         @media (max-width: 768px) {
             body { padding: 10px; }
             #game-container { height: 85vh; margin-top: 40px; }
@@ -192,7 +215,6 @@
     </div>
 
     <div id="game-container">
-        
         <div id="ui-layer" style="display:none;">
             <div id="score-box" class="hud-box">SCORE: <span id="score">0</span></div>
             <button class="home-btn" onclick="resetToTitle()">🏠 Home</button>
@@ -243,17 +265,27 @@
 
     <script>
         /* =======================================================
-           🔥🔥 Supabase 정보 🔥🔥
-           ======================================================= */
+           🔥🔥 Supabase 정보 세팅 구역 🔥🔥
+        ======================================================= */
         const SUPABASE_URL = 'https://fjcddgvhsauwyqzfrmur.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY2RkZ3Zoc2F1d3lxemZybXVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODQwNTQsImV4cCI6MjA5NjU2MDA1NH0.KR3SiOsZl4LBI4hL4YYuPdBIXOP1C2kiwZ5uExohZZI';
         
-        // Supabase 클라이언트 초기화 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase = null;
+        try {
+            // 수파베이스 초기화 시 에러가 나도 게임이 멈추지 않도록 안전장치(try-catch) 추가!
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (error) {
+            console.error("수파베이스 연결 문제 발생:", error);
+        }
 
         let currentNickname = "";
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        // 사이드바 토글
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('open'); 
+        }
 
         // 순위표 불러오기
         async function openLeaderboard() {
@@ -262,6 +294,11 @@
             const list = document.getElementById('leaderboard-list');
             modal.style.display = 'flex';
             list.innerHTML = '<li style="justify-content:center; color:#a0aec0;">데이터를 맹렬히 불러오는 중... 🏃‍♂️💨</li>';
+
+            if (!supabase) {
+                list.innerHTML = '<li style="justify-content:center; color:#ff5555;">서버(Supabase) 연동 상태를 확인해주세요!</li>';
+                return;
+            }
 
             try {
                 const { data, error } = await supabase
@@ -293,6 +330,11 @@
         // 점수 저장
         async function saveScoreToSupabase() {
             const statusDiv = document.getElementById('save-status');
+            if (!supabase) {
+                statusDiv.innerText = "⚠️ 서버 연동이 되어있지 않아 점수가 저장되지 않습니다.";
+                return;
+            }
+
             statusDiv.innerText = "명예의 전당에 점수를 기록하는 중... ✍️";
             
             try {
@@ -574,27 +616,6 @@
             document.getElementById('final-score').innerText = `최종 점수: ${score} 점`;
             saveScoreToSupabase();
         }
-
-        // ==========================================
-        // 🛡️ [보안 쉴드 패치 완료!] 
-        // 하단에서 조용히, 그러나 완벽하게 작동합니다. (캡처링 제거)
-        // ==========================================
-        window.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-
-        window.addEventListener('keydown', function(e) {
-            if (e.key === 'F12') {
-                e.preventDefault();
-            }
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-                e.preventDefault();
-            }
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault();
-            }
-        });
-
     </script>
 </body>
 </html>
