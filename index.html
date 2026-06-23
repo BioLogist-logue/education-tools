@@ -1,621 +1,162 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>센트럴 도그마: 완벽 마스터 (전사 + 번역)</title>
-    
-    <script>
-    (function() {
-        // 1. 우클릭 원천 차단
-        window.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }, true);
+@@ -169,13 +169,69 @@
+        .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+        .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--accent-gray); }
 
-        // 2. 개발자 도구 단축키 전면 마비
-        window.addEventListener('keydown', function(e) {
-            if (e.key === 'F12') {
-                e.preventDefault(); e.stopPropagation(); return false;
-            }
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-                e.preventDefault(); e.stopPropagation(); return false;
-            }
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-                e.preventDefault(); e.stopPropagation(); return false;
-            }
-        }, true);
-    })();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body {
-            margin: 0; padding: 20px 0; background-color: #0b0f19; color: #ffffff;
-            font-family: 'Malgun Gothic', sans-serif; 
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh;
-            box-sizing: border-box; overflow-x: hidden;
+         /* 팝업 모달 공통 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none; z-index: 1000; justify-content: center; align-items: center; }
+        /* 팝업 모달 공통 스타일 (주인님 감성에 맞춘 고급 다크 테마) */
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(5px);
+            display: none; 
+            z-index: 1000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-body { background: white; width: 95%; max-width: 700px; max-height: 85vh; border-radius: 20px; position: relative; overflow-y: auto; padding: 25px; color: #111; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #333; font-weight: bold; z-index: 10; }
+        .modal-body { 
+            background: var(--bg-card); 
+            width: 90%; 
+            max-width: 440px; 
+            border-radius: 24px; 
+            position: relative; 
+            padding: 35px 25px; 
+            color: var(--text-title); 
+            border: 1px solid #334155;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalFadeIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .close-modal { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            font-size: 24px; 
+            cursor: pointer; 
+            color: var(--text-desc); 
+            font-weight: bold; 
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: var(--accent-pink); }
+        .modal-icon { font-size: 45px; margin-bottom: 15px; }
+        .modal-title { font-size: 20px; margin: 0 0 10px 0; font-weight: 700; color: var(--text-title); }
+        .modal-text { font-size: 15px; line-height: 1.6; margin: 0 0 25px 0; color: var(--text-desc); }
+        .modal-btn { 
+            background: linear-gradient(to right, #3b82f6, #8b5cf6); 
+            color: white; 
+            border: none; 
+            padding: 10px 30px; 
+            border-radius: 12px; 
+            font-size: 14px;
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .modal-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
         }
 
-        /* 햄버거 메뉴 및 사이드바 */
-        #menu-btn {
-            position: absolute; top: 15px; left: 15px; z-index: 100;
-            background: none; border: none; color: #00ffcc; font-size: 30px; cursor: pointer; transition: 0.2s;
-        }
-        #menu-btn:hover { transform: scale(1.1); color: #00a2ff; }
-        
-        #sidebar {
-            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
-            background: rgba(11, 20, 38, 0.98); border-right: 2px solid #00a2ff;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 101; display: flex; flex-direction: column; padding-top: 80px;
-            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
-        }
-        #sidebar.open { left: 0; }
-        #sidebar-close {
-            position: absolute; top: 20px; right: 20px; background: none; border: none; color: #ff007c; font-size: 24px; cursor: pointer;
-        }
-        .sidebar-link {
-            color: #e2e8f0; text-decoration: none; font-size: 16px; padding: 18px 25px; border-bottom: 1px solid #1f3d68; transition: 0.2s; font-weight: bold; background: none; border: none; text-align: left; cursor: pointer; display: block; width: 100%; box-sizing: border-box;
-        }
-        .sidebar-link:hover { background: #1f3d68; color: #00ffcc; padding-left: 30px; }
+        /* 하단 푸터 스타일 복구 및 고정 해제 */
+        /* 하단 푸터 스타일 */
+        .portal-footer {
+            margin-top: 60px;
+            padding: 24px 0;
+@@ -256,7 +312,7 @@ <h3>🪸 생물 분류 대시보드/게임</h3>
+             <div class="go-btn">실험실 입장하기 →</div>
+        </a>
 
-        /* 메인 게임 컨테이너 */
-        #game-container {
-            position: relative; width: 100%; max-width: 1000px; height: 680px;
-            background: radial-gradient(circle, #151f32 0%, #080c14 100%);
-            border: 3px solid #1f3d68; border-radius: 15px; box-shadow: 0 0 30px rgba(0, 162, 255, 0.3); overflow: hidden;
-            margin-bottom: 20px;
-        }
+        <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+        <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+@@ -265,7 +321,7 @@ <h3>🔒 준비 중인 실험실</h3>
+            <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
+        </a>
 
-        /* 공통 스크린 설정 */
-        .screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(5, 12, 26, 0.95);
-        }
-        .screen.active { display: flex; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+@@ -274,7 +330,7 @@ <h3>🔒 준비 중인 실험실</h3>
+            <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
+        </a>
 
-        /* 타이틀 화면 */
-        #title-screen h1 { font-size: 40px; color: #00ffcc; text-shadow: 0 0 15px rgba(0,255,204,0.5); margin-bottom: 10px; text-align: center;}
-        #nickname-input {
-            padding: 12px; font-size: 18px; border-radius: 8px; border: 2px solid #00a2ff; background: #0b1426; color: #fff; text-align: center; margin-bottom: 15px; outline: none; width: 250px; font-weight:bold;
-        }
-        #nickname-input:focus { box-shadow: 0 0 10px #00a2ff; }
-        .level-btn {
-            background: linear-gradient(135deg, #1f3d68 0%, #0b1426 100%);
-            border: 2px solid #00a2ff; color: #fff; padding: 15px 40px; font-size: 18px;
-            border-radius: 10px; cursor: pointer; margin: 8px; transition: 0.3s; width: 320px; font-weight: bold;
-        }
-        .level-btn:hover { background: #00a2ff; transform: scale(1.05); box-shadow: 0 0 15px #00a2ff; }
-        .how-to-btn {
-            background: #080c14; border: 2px dashed #ffcc00; color: #ffcc00; padding: 10px 30px; font-size: 16px; border-radius: 20px; margin-top: 15px; cursor: pointer; transition: 0.3s;
-        }
-        .how-to-btn:hover { background: #ffcc00; color: #000; }
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+@@ -283,7 +339,7 @@ <h3>🔒 준비 중인 실험실</h3>
+            <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
+        </a>
 
-        /* 인게임 UI */
-        canvas { display: block; width: 100%; height: 100%; }
-        #ui-layer {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            pointer-events: auto; display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; z-index: 10; width: 100%;
-        }
-        .hud-box { background: rgba(11, 20, 38, 0.8); padding: 6px 12px; border-radius: 8px; border: 1px solid #31578a; }
-        #score-box { color: #00ffcc; } #combo-box { color: #ff007c; }
-        .home-btn { background: #1f3d68; border: 1px solid #00a2ff; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+@@ -292,7 +348,7 @@ <h3>🔒 준비 중인 실험실</h3>
+            <div class="go-btn" style="color: var(--accent-gray);">준비 중...</div>
+        </a>
 
-        /* 모바일 터치 패드 */
-        #mobile-keyboard {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: none; gap: 15px; z-index: 20;
-        }
-        .mk-btn {
-            width: 65px; height: 65px; border-radius: 50%; background: rgba(11, 20, 38, 0.9); border: 3px solid #ff007c; color: #fff; font-size: 28px; font-weight: bold; cursor: pointer; box-shadow: 0 0 15px rgba(255,0,124,0.4);
-        }
-        .mk-btn:active { background: #ff007c; transform: scale(0.9); }
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다'); return false;" class="tool-card" style="opacity: 0.6;">
+         <a href="#" onclick="customAlert('아직 준비 중인 실험실입니다, 주인님!'); return false;" class="tool-card" style="opacity: 0.6;">
+            <div class="tool-content">
+                <span class="badge badge-ready">Coming Soon</span>
+                <h3>🔒 준비 중인 실험실</h3>
+@@ -307,6 +363,41 @@ <h3>🔒 준비 중인 실험실</h3>
+        <p>© Copyright 2026 All rights reserved by BioLogist</p>
+    </footer>
+</div>
 
-        /* 번역 스크린 - 2단 분리 */
-        #translation-layout { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 50px 10px 10px 10px; box-sizing: border-box; }
-        .tl-top { flex: 0.4; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 2px dashed #31578a; padding-bottom: 10px; margin-bottom: 10px;}
-        .tl-bottom { flex: 0.6; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; }
-
-        #translation-screen h2 { color: #ff007c; font-size: 24px; margin: 0 0 5px 0;}
-        #mrna-display {
-            background: rgba(11, 20, 38, 0.8); padding: 10px; border-radius: 10px; border: 1px solid #ff007c;
-            font-size: 20px; letter-spacing: 2px; margin-bottom: 10px; text-align: center; width: 95%; max-width: 600px;
-        }
-        .codon { display: inline-block; margin: 0 3px; padding: 4px; border-radius: 5px; transition: 0.3s; }
-        .codon.active { background: #ffcc00; color: #000; transform: scale(1.2); font-weight: bold; box-shadow: 0 0 10px #ffcc00; }
-        .codon.done { color: #00ffcc; text-decoration: underline; }
-        
-        #amino-chain {
-            min-height: 50px; width: 95%; max-width: 600px; padding: 10px;
-            border: 1px solid #00a2ff; background: rgba(0,0,0,0.5); border-radius: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; align-content: flex-start;
-        }
-        .amino-acid { background: #1f3d68; padding: 6px 12px; border-radius: 20px; border: 2px solid #00a2ff; font-size: 14px; font-weight:bold; color: white; animation: popIn 0.3s; }
-
-        /* 클릭 가능한 코돈표 */
-        #codon-table-container { width: 100%; max-width: 800px; }
-        .codon-table { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 13px; text-align: center; }
-        .codon-table th { background: #1f3d68; color: #00ffcc; padding: 5px; border-radius: 4px;}
-        .codon-table td { background: #0b1426; border: 1px solid #31578a; border-radius: 6px; padding: 8px 2px; transition: 0.2s; cursor: pointer; }
-        .codon-table td:hover { background: #1f3d68; transform: scale(1.03); border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.5); }
-        .codon-table td:active { transform: scale(0.95); background: #00a2ff; }
-        .cell-codon-text { display: block; font-weight: bold; color: #00a2ff; font-size: 14px; margin-bottom: 3px; letter-spacing: 1px;}
-        .cell-amino-text { display: block; color: #e2e8f0; font-size: 12px; }
-
-        /* 모달 팝업 */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 12, 26, 0.85);
-            display: none; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: #0b1426; border: 2px solid #00ffcc; border-radius: 15px; padding: 30px; width: 90%; max-width: 450px;
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); text-align: center; color: #e2e8f0; line-height: 1.6; max-height: 80vh; overflow-y: auto;
-        }
-        .modal-content h3 { color: #00ffcc; font-size: 26px; margin-top: 0; border-bottom: 1px dashed #1f3d68; padding-bottom: 10px; }
-        .close-modal-btn { background: #ff007c; border: none; color: #fff; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; }
-
-        /* 순위표 리스트 */
-        #leaderboard-list { list-style: none; padding: 0; margin: 0; text-align: left; }
-        #leaderboard-list li { background: #1f3d68; margin-bottom: 8px; padding: 10px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;}
-        .rank-badge { background: #00ffcc; color: #000; padding: 4px 8px; border-radius: 5px; margin-right: 10px; font-size: 14px;}
-
-        #footer { font-size: 12px; color: #4a5568; text-align: center; margin-top: auto; padding-top: 20px; }
-
-        /* 결과 화면 */
-        #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
-        .btn { background: linear-gradient(135deg, #00ffcc 0%, #00a2ff 100%); border: none; color: #050c1a; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px; }
-
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            #game-container { height: 85vh; margin-top: 40px; }
-            #mobile-keyboard { display: flex; }
-            #title-screen h1 { font-size: 28px; }
-            .codon-table { font-size: 11px; }
-            .cell-codon-text { font-size: 12px; }
-            .cell-amino-text { font-size: 10px; letter-spacing: -0.5px;}
-        }
-    </style>
-</head>
-<body>
-
-    <button id="menu-btn" onclick="toggleSidebar()">☰</button>
-
-    <div id="sidebar">
-        <button id="sidebar-close" onclick="toggleSidebar()">✖</button>
-        <button class="sidebar-link" onclick="openLeaderboard()">🏆 명예의 전당 (순위)</button>
-        <a href="#" class="sidebar-link">🌐 블로그 바로가기</a>
-        <a href="#" class="sidebar-link">📸 인스타그램 바로가기</a>
-        <a href="#" class="sidebar-link">🚀 에듀테크 허브 바로가기</a>
+<div id="customModal" class="modal-overlay">
+    <div class="modal-body">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-icon">🧪</div>
+        <h3 class="modal-title">Lab Notice</h3>
+        <p id="modalMessage" class="modal-text">안내 메시지 내용</p>
+        <button class="modal-btn" onclick="closeModal()">확인</button>
     </div>
+</div>
 
-    <div id="how-to-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>📖 게임 방법</h3>
-            <p><b>[1단계: DNA 전사]</b><br>
-            아래쪽 가닥이 노란색 타깃 원에 올 때, <span style="color:#00ffcc;">상보적인 RNA 염기</span>를 타이핑하세요!<br>
-            (※ A ↔ U / T ↔ A / G ↔ C / C ↔ G)</p>
-            <div style="height:1px; background:#1f3d68; margin:15px 0;"></div>
-            <p><b>[2단계: 단백질 번역]</b><br>
-            노란색으로 빛나는 mRNA 코돈 3글자를 보고,<br>
-            아래쪽 <b>코돈표에서 알맞은 칸을 직접 터치</b>하여 단백질 합성을 완성하세요!</p>
-            <p style="color:#ff007c; font-size:13px; margin-top:15px;">※ 주의: 오타를 내면 화면이 흔들리며 콤보가 박살납니다!</p>
-            <button class="close-modal-btn" onclick="document.getElementById('how-to-modal').style.display='none'">확인했습니다!</button>
-        </div>
-    </div>
-
-    <div id="leaderboard-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3>🏆 랭킹 TOP 10</h3>
-            <ul id="leaderboard-list">
-                <li style="justify-content:center; color:#a0aec0;">데이터를 불러오는 중... ⏳</li>
-            </ul>
-            <button class="close-modal-btn" onclick="document.getElementById('leaderboard-modal').style.display='none'">닫기</button>
-        </div>
-    </div>
-
-    <div id="game-container">
-        <div id="ui-layer" style="display:none;">
-            <div id="score-box" class="hud-box">SCORE: <span id="score">0</span></div>
-            <button class="home-btn" onclick="resetToTitle()">🏠 Home</button>
-            <div id="combo-box" class="hud-box">COMBO: <span id="combo">0</span></div>
-        </div>
-
-        <div id="title-screen" class="screen active">
-            <h1>🧬 센트럴 도그마 레이스</h1>
-            <input type="text" id="nickname-input" placeholder="닉네임을 입력하세요 (필수)" maxlength="10">
-            <button class="level-btn" onclick="startGame(5)">🌱 숏 (아미노산 4개 + 종결)</button>
-            <button class="level-btn" onclick="startGame(10)">🌿 미디움 (아미노산 9개 + 종결)</button>
-            <button class="level-btn" onclick="startGame(16)">🌳 롱 (아미노산 15개 + 종결)</button>
-            <button class="how-to-btn" onclick="document.getElementById('how-to-modal').style.display='flex'">📖 게임 방법 보기</button>
-        </div>
-
-        <canvas id="gameCanvas" width="1000" height="680" style="display:none;"></canvas>
-
-        <div id="mobile-keyboard">
-            <button class="mk-btn" onclick="handleMobileInput('A')">A</button>
-            <button class="mk-btn" onclick="handleMobileInput('U')">U</button>
-            <button class="mk-btn" onclick="handleMobileInput('G')">G</button>
-            <button class="mk-btn" onclick="handleMobileInput('C')">C</button>
-        </div>
-
-        <div id="translation-screen" class="screen">
-            <div id="translation-layout">
-                <div class="tl-top">
-                    <h2>단백질 번역 진행중</h2>
-                    <div id="mrna-display"></div>
-                    <div id="amino-chain"></div>
-                </div>
-                <div class="tl-bottom">
-                    <div id="codon-table-container"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="game-over-screen" class="screen">
-            <h1 id="result-title">합성 완료! 🛑</h1>
-            <p id="result-text" style="font-size: 20px; color: #e2e8f0; margin-bottom: 20px; text-align: center;">완벽한 단백질이 탄생했습니다!</p>
-            <div style="font-size: 30px; color: #00ffcc; margin-bottom: 20px; font-weight: bold;" id="final-score">최종 점수: 0점</div>
-            <div id="save-status" style="color:#ffcc00; margin-bottom:20px; font-size:16px;"></div>
-            <button class="btn" onclick="resetToTitle()">타이틀로 돌아가기</button>
-        </div>
-    </div>
-
-    <div id="footer">© Copyright 2026 All rights reserved by BioLogist</div>
-
-    <script>
-        /* =======================================================
-           🔥🔥 Supabase 정보 세팅 구역 🔥🔥
-        ======================================================= */
-        const SUPABASE_URL = 'https://fjcddgvhsauwyqzfrmur.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY2RkZ3Zoc2F1d3lxemZybXVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODQwNTQsImV4cCI6MjA5NjU2MDA1NH0.KR3SiOsZl4LBI4hL4YYuPdBIXOP1C2kiwZ5uExohZZI';
+<script>
+    // 모달 열기 함수
+    function customAlert(message) {
+        const modal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
         
-        let supabase = null;
-        try {
-            // 수파베이스 초기화 시 에러가 나도 게임이 멈추지 않도록 안전장치(try-catch) 추가!
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch (error) {
-            console.error("수파베이스 연결 문제 발생:", error);
+        modalMessage.innerText = message; // 메시지 변경
+        modal.classList.add('active');   // 모달 보이기
+    }
+
+    // 모달 닫기 함수
+    function closeModal() {
+        const modal = document.getElementById('customModal');
+        modal.classList.remove('active'); // 모달 숨기기
+    }
+
+    // 모달 바깥쪽 어두운 배경 클릭 시 닫히는 기능
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('customModal');
+        if (event.target === modal) {
+            closeModal();
         }
+    });
+</script>
 
-        let currentNickname = "";
-
-        // 사이드바 토글
-        function toggleSidebar() { 
-            document.getElementById('sidebar').classList.toggle('open'); 
-        }
-
-        // 순위표 불러오기
-        async function openLeaderboard() {
-            toggleSidebar();
-            const modal = document.getElementById('leaderboard-modal');
-            const list = document.getElementById('leaderboard-list');
-            modal.style.display = 'flex';
-            list.innerHTML = '<li style="justify-content:center; color:#a0aec0;">데이터를 맹렬히 불러오는 중... 🏃‍♂️💨</li>';
-
-            if (!supabase) {
-                list.innerHTML = '<li style="justify-content:center; color:#ff5555;">서버(Supabase) 연동 상태를 확인해주세요!</li>';
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase
-                    .from('central_dogma_scores')
-                    .select('*')
-                    .order('score', { ascending: false })
-                    .limit(10);
-                
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    list.innerHTML = '';
-                    data.forEach((row, idx) => {
-                        let badgeColor = "#00ffcc";
-                        if(idx === 0) badgeColor = "#ffd700"; 
-                        else if(idx === 1) badgeColor = "#c0c0c0";
-                        else if(idx === 2) badgeColor = "#cd7f32"; 
-                        
-                        list.innerHTML += `<li><div><span class="rank-badge" style="background:${badgeColor}; color:#000;">${idx+1}위</span> ${row.nickname}</div> <div style="color:#ff007c;">${row.score}점</div></li>`;
-                    });
-                } else {
-                    list.innerHTML = '<li style="justify-content:center;">아직 등록된 랭커가 없습니다! 1등을 차지하세요!</li>';
-                }
-            } catch (err) {
-                list.innerHTML = `<li style="justify-content:center; color:#ff5555; font-size:14px; text-align:center;">순위표 데이터를 불러올 수 없습니다!<br>(에러: ${err.message})</li>`;
-            }
-        }
-
-        // 점수 저장
-        async function saveScoreToSupabase() {
-            const statusDiv = document.getElementById('save-status');
-            if (!supabase) {
-                statusDiv.innerText = "⚠️ 서버 연동이 되어있지 않아 점수가 저장되지 않습니다.";
-                return;
-            }
-
-            statusDiv.innerText = "명예의 전당에 점수를 기록하는 중... ✍️";
-            
-            try {
-                const { error } = await supabase
-                    .from('central_dogma_scores')
-                    .insert([{ nickname: currentNickname, score: score }]);
-                
-                if (error) throw error;
-                statusDiv.innerText = "🎉 랭킹 등록 완료! 순위표를 확인해보세요!";
-            } catch (err) {
-                statusDiv.innerText = `⚠️ 저장 실패: 서버에 접속할 수 없습니다.`;
-            }
-        }
-
-        const codonDict = {
-            'AUG': '메티오닌(개시)', 'UUU': '페닐알라닌', 'UUC': '페닐알라닌', 'UUA': '류신', 'UUG': '류신',
-            'CUU': '류신', 'CUC': '류신', 'CUA': '류신', 'CUG': '류신', 'AUU': '이소류신', 'AUC': '이소류신', 'AUA': '이소류신',
-            'GUU': '발린', 'GUC': '발린', 'GUA': '발린', 'GUG': '발린', 'UCU': '세린', 'UCC': '세린', 'UCA': '세린', 'UCG': '세린',
-            'CCU': '프롤린', 'CCC': '프롤린', 'CCA': '프롤린', 'CCG': '프롤린', 'ACU': '트레오닌', 'ACC': '트레오닌', 'ACA': '트레오닌', 'ACG': '트레오닌',
-            'GCU': '알라닌', 'GCC': '알라닌', 'GCA': '알라닌', 'GCG': '알라닌', 'UAU': '티로신', 'UAC': '티로신', 'UAA': '종결(Stop)', 'UAG': '종결(Stop)',
-            'CAU': '히스티딘', 'CAC': '히스티딘', 'CAA': '글루타민', 'CAG': '글루타민', 'AAU': '아스파라긴', 'AAC': '아스파라긴',
-            'AAA': '리신', 'AAG': '리신', 'GAU': '아스파르트산', 'GAC': '아스파르트산', 'GAA': '글루탐산', 'GAG': '글루탐산',
-            'UGU': '시스테인', 'UGC': '시스테인', 'UGA': '종결(Stop)', 'UGG': '트립토판', 'CGU': '아르기닌', 'CGC': '아르기닌', 'CGA': '아르기닌', 'CGG': '아르기닌',
-            'AGU': '세린', 'AGC': '세린', 'AGA': '아르기닌', 'AGG': '아르기닌', 'GGU': '글리신', 'GGC': '글리신', 'GGA': '글리신', 'GGG': '글리신'
-        };
-
-        const transcriptionMap = { 'A': 'U', 'T': 'A', 'G': 'C', 'C': 'G' };
-        const revMap = { 'A': 'T', 'U': 'A', 'G': 'C', 'C': 'G' };
-        const compDNA = { 'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G' };
-
-        let score = 0, combo = 0;
-        let gameState = 'title';
-        let dnaTemplateSequence = [], rnaResultSequence = [], codons = [], currentTlIndex = 0;
-        
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        let dnaNodes = [], particles = [], floatingRNAs = [];
-        let currentTxIndex = 0, screenShake = 0, txActive = false;
-        
-        const TARGET_X = 250, BASE_SPACING = 70, CENTER_Y = 340;
-
-        function buildCodonTable() {
-            const bases = ['U', 'C', 'A', 'G'];
-            let html = '<table class="codon-table"><tr><th>제1</th><th colspan="4">제2염기</th><th>제3</th></tr>';
-            html += '<tr><th>염기</th><th>U</th><th>C</th><th>A</th><th>G</th><th>염기</th></tr>';
-            for(let i=0; i<4; i++) {
-                for(let k=0; k<4; k++) {
-                    if(k===0) html += `<tr><th rowspan="4">${bases[i]}</th>`;
-                    else html += `<tr>`;
-                    for(let j=0; j<4; j++) {
-                        let codon = bases[i] + bases[j] + bases[k];
-                        let fullAmino = codonDict[codon];
-                        let displayAmino = fullAmino.replace('(개시)','').replace('(Stop)','');
-                        let isStop = fullAmino.includes('종결');
-                        let stopStyle = isStop ? 'color:#ffcc00;' : '';
-                        
-                        html += `<td onclick="checkTranslation('${fullAmino}')">
-                                    <span class="cell-codon-text">${codon}</span>
-                                    <span class="cell-amino-text" style="${stopStyle}">${displayAmino}</span>
-                                 </td>`;
-                    }
-                    html += `<th>${bases[k]}</th></tr>`;
-                }
-            }
-            html += '</table>';
-            document.getElementById('codon-table-container').innerHTML = html;
-        }
-
-        function generateSequence(codonCount) {
-            let rna = ['A', 'U', 'G']; 
-            const bases = ['A', 'U', 'G', 'C'];
-            for(let i=0; i<codonCount-2; i++) {
-                let valid = false;
-                while(!valid) {
-                    let c = bases[Math.floor(Math.random()*4)] + bases[Math.floor(Math.random()*4)] + bases[Math.floor(Math.random()*4)];
-                    if(!codonDict[c].includes('종결') && c !== 'AUG') {
-                        rna.push(c[0], c[1], c[2]); valid = true;
-                    }
-                }
-            }
-            const stops = ['UAA', 'UAG', 'UGA'];
-            let stop = stops[Math.floor(Math.random()*3)];
-            rna.push(stop[0], stop[1], stop[2]);
-            return rna.map(base => revMap[base]);
-        }
-
-        function switchScreen(screenId) {
-            document.querySelectorAll('.screen, canvas').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
-            document.getElementById('mobile-keyboard').style.display = 'none';
-
-            if(screenId === 'gameCanvas') {
-                document.getElementById(screenId).style.display = 'block';
-                document.getElementById('ui-layer').style.display = 'flex';
-                if(window.innerWidth <= 768) document.getElementById('mobile-keyboard').style.display = 'flex';
-            } else {
-                let s = document.getElementById(screenId);
-                s.style.display = 'flex'; s.classList.add('active');
-                if(screenId === 'title-screen') document.getElementById('ui-layer').style.display = 'none';
-            }
-        }
-
-        function updateScore(points) {
-            score += points; document.getElementById('score').innerText = score; document.getElementById('combo').innerText = combo;
-        }
-
-        function resetToTitle() { 
-            gameState = 'title'; 
-            switchScreen('title-screen'); 
-        }
-
-        function startGame(codonCount) {
-            const nickInput = document.getElementById('nickname-input').value.trim();
-            if(!nickInput) { alert("주인님! 순위에 등록할 닉네임을 꼭 작성해주세요!"); return; }
-            currentNickname = nickInput;
-
-            score = 0; combo = 0; updateScore(0);
-            dnaTemplateSequence = generateSequence(codonCount);
-            rnaResultSequence = []; currentTxIndex = 0;
-            dnaNodes = []; particles = []; floatingRNAs = [];
-            
-            for (let i = 0; i < dnaTemplateSequence.length; i++) {
-                dnaNodes.push({ index: i, base: dnaTemplateSequence[i], x: TARGET_X + (i * BASE_SPACING), typed: false });
-            }
-            buildCodonTable();
-            switchScreen('gameCanvas');
-            gameState = 'transcription'; txActive = true;
-            updateCanvas();
-        }
-
-        function handleMobileInput(key) { processInput(key); }
-
-        window.addEventListener('keydown', (e) => {
-            if (gameState !== 'transcription' || !txActive) return;
-            let key = e.key.toUpperCase();
-            if (key.length !== 1 || !/[A-Z]/.test(key)) return; 
-            processInput(key);
-        });
-
-        function processInput(key) {
-            let node = dnaNodes[currentTxIndex];
-            if (!node) return;
-            let correct = transcriptionMap[node.base];
-            
-            if (key === correct) {
-                node.typed = true; rnaResultSequence.push(correct);
-                createParticles(node.x, CENTER_Y + 50, '#ff007c');
-                floatingRNAs.push({ x: node.x, y: CENTER_Y + 50, base: correct, targetY: CENTER_Y + 130 });
-                combo++; updateScore(50 + (combo * 5)); currentTxIndex++;
-
-                if (currentTxIndex >= dnaNodes.length) {
-                    txActive = false;
-                    setTimeout(() => startTranslation(), 1000); 
-                }
-            } else {
-                combo = 0; screenShake = 20; updateScore(0);
-                createParticles(TARGET_X, CENTER_Y + 50, '#ff0000');
-                if('vibrate' in navigator) navigator.vibrate(200);
-            }
-        }
-
-        function createParticles(x, y, color) {
-            for (let i = 0; i < 15; i++) particles.push({ x, y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, radius: Math.random()*5+3, color, alpha: 1 });
-        }
-
-        function updateCanvas() {
-            if(gameState !== 'transcription') return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let offX = 0, offY = 0;
-            if (screenShake > 0) {
-                offX = (Math.random() - 0.5) * screenShake; offY = (Math.random() - 0.5) * screenShake;
-                screenShake *= 0.85; if (screenShake < 0.5) screenShake = 0;
-            }
-            ctx.save(); ctx.translate(offX, offY);
-
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(0, CENTER_Y - 50); ctx.lineTo(canvas.width, CENTER_Y - 50);
-            ctx.moveTo(0, CENTER_Y + 50); ctx.lineTo(canvas.width, CENTER_Y + 50); ctx.stroke();
-
-            ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 4; ctx.setLineDash([5, 5]); ctx.beginPath();
-            ctx.arc(TARGET_X, CENTER_Y + 50, 25, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
-
-            if (dnaNodes.length > 0) {
-                dnaNodes.forEach(node => { node.x += ((TARGET_X + (node.index * BASE_SPACING) - (currentTxIndex * BASE_SPACING)) - node.x) * 0.15; });
-            }
-
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = '#00a2ff'; ctx.beginPath(); 
-            for (let x = 0; x <= canvas.width; x += 15) {
-                let y = (x > TARGET_X + 20) ? CENTER_Y - 25 + Math.sin(x*0.05)*25 : CENTER_Y - 50 - (TARGET_X + 20 - x) * 0.3;
-                x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-            } ctx.stroke();
-
-            ctx.strokeStyle = '#ff5555'; ctx.beginPath(); 
-            for (let x = 0; x <= canvas.width; x += 15) {
-                let y = (x > TARGET_X + 20) ? CENTER_Y + 25 - Math.sin(x*0.05)*25 : CENTER_Y + 50 + (TARGET_X + 20 - x) * 0.3;
-                x===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-            } ctx.stroke();
-
-            dnaNodes.forEach(node => {
-                if (node.x < -50 || node.x > canvas.width + 50) return;
-                let yTop = (node.x > TARGET_X + 20) ? CENTER_Y - 25 + Math.sin(node.x*0.05)*25 : CENTER_Y - 50 - (TARGET_X + 20 - node.x) * 0.3;
-                let yBot = (node.x > TARGET_X + 20) ? CENTER_Y + 25 - Math.sin(node.x*0.05)*25 : CENTER_Y + 50 + (TARGET_X + 20 - node.x) * 0.3;
-
-                ctx.fillStyle = '#00a2ff'; ctx.beginPath(); ctx.arc(node.x, yTop, 16, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-                ctx.fillText(compDNA[node.base], node.x, yTop);
-
-                ctx.fillStyle = node.typed ? '#4a5568' : '#ff5555'; ctx.beginPath(); ctx.arc(node.x, yBot, 18, 0, Math.PI*2); ctx.fill();
-                if (node.index === currentTxIndex) {
-                    ctx.strokeStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(node.x, yBot, 22 + Math.sin(Date.now()*0.01)*2, 0, Math.PI*2); ctx.stroke();
-                }
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 18px sans-serif'; ctx.fillText(node.base, node.x, yBot);
-            });
-
-            floatingRNAs.forEach((rna, i) => {
-                rna.y += (rna.targetY - rna.y) * 0.1;
-                let targetX = dnaNodes[i] ? dnaNodes[i].x : rna.x; rna.x += (targetX - rna.x) * 0.2;
-                ctx.fillStyle = '#ff007c'; ctx.beginPath(); ctx.arc(rna.x, rna.y, 16, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.fillText(rna.base, rna.x, rna.y);
-            });
-
-            particles.forEach((p, i) => {
-                p.x+=p.vx; p.y+=p.vy; p.alpha-=0.03;
-                if(p.alpha<=0) particles.splice(i,1);
-                else { ctx.globalAlpha=p.alpha; ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,p.radius,0,Math.PI*2); ctx.fill(); }
-            });
-            ctx.restore(); requestAnimationFrame(updateCanvas);
-        }
-
-        function startTranslation() {
-            gameState = 'translation'; switchScreen('translation-screen');
-            codons = [];
-            for(let i=0; i<rnaResultSequence.length; i+=3) codons.push(rnaResultSequence.slice(i, i+3).join(''));
-            currentTlIndex = 0; document.getElementById('amino-chain').innerHTML = '';
-            renderTranslationUI();
-        }
-
-        function renderTranslationUI() {
-            const display = document.getElementById('mrna-display'); display.innerHTML = '';
-            codons.forEach((codon, index) => {
-                let span = document.createElement('span');
-                span.className = 'codon' + (index === currentTlIndex ? ' active' : (index < currentTlIndex ? ' done' : ''));
-                span.innerText = codon; display.appendChild(span);
-            });
-
-            if (currentTlIndex >= codons.length) {
-                setTimeout(() => showGameOver(), 800); return;
-            }
-        }
-
-        function checkTranslation(selectedAminoFull) {
-            const currentCodon = codons[currentTlIndex];
-            const correctAminoFull = codonDict[currentCodon]; 
-            
-            if (selectedAminoFull === correctAminoFull) {
-                combo++; updateScore(150 + combo * 10);
-                let chain = document.getElementById('amino-chain');
-                let aa = document.createElement('div'); aa.className = 'amino-acid';
-                
-                if(correctAminoFull.includes('종결')) {
-                    aa.style.background = '#ff007c'; aa.style.borderColor = '#ffcc00'; aa.innerText = "🛑 완성!";
-                } else {
-                    aa.innerText = correctAminoFull.replace('(개시)','');
-                }
-                chain.appendChild(aa);
-                
-                currentTlIndex++; renderTranslationUI();
-            } else {
-                combo = 0; updateScore(0);
-                document.getElementById('translation-screen').style.background = 'rgba(74, 0, 0, 0.9)';
-                if('vibrate' in navigator) navigator.vibrate(200);
-                setTimeout(() => document.getElementById('translation-screen').style.background = 'rgba(5, 12, 26, 0.95)', 200);
-            }
-        }
-
-        function showGameOver() {
-            gameState = 'over'; switchScreen('game-over-screen');
-            document.getElementById('final-score').innerText = `최종 점수: ${score} 점`;
-            saveScoreToSupabase();
-        }
-    </script>
 </body>
 </html>
