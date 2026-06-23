@@ -12,9 +12,6 @@
         })();
     </script>
     
-<!DOCTYPE html>
-<html lang="ko">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Science Lab</title>
@@ -38,13 +35,13 @@
             margin: 0;
             padding: 20px;
             display: flex;
-            flex-direction: column; /* 세로 정렬로 변경하여 푸터 처리 용이하게 함 */
+            flex-direction: column;
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
         }
 
-        /* 상단 네비게이션 헤더 (요청하신 기능 추가) */
+        /* 상단 네비게이션 헤더 */
         .nav-header {
             width: 100%;
             max-width: 1000px;
@@ -80,7 +77,7 @@
             max-width: 1000px;
             margin: 0 auto;
             width: 100%;
-            flex: 1; /* 콘텐츠 영역이 공간을 차지하게 함 */
+            flex: 1;
         }
 
         /* 대문 헤더 스타일 */
@@ -107,12 +104,12 @@
             font-size: 16px;
         }
 
-        /* [핵심] 반응형 그리드 레이아웃 */
+        /* 반응형 그리드 레이아웃 */
         .tools-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
-            padding-bottom: 40px; /* 하단 여백 추가 */
+            padding-bottom: 40px;
         }
 
         /* 바로가기 카드 스타일 */
@@ -128,11 +125,10 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 220px; /* 카드 최소 높이 설정 */
+            min-height: 220px;
             box-sizing: border-box;
         }
 
-        /* 마우스 올렸을 때 역동적인 애니메이션 효과 */
         .tool-card:hover {
             background-color: var(--bg-card-hover);
             transform: translateY(-5px);
@@ -160,10 +156,9 @@
             font-size: 14px;
             line-height: 1.6;
             margin: 0 0 20px 0;
-            flex-grow: 1; /* p 태그가 남은 공간을 차지하게 하여 버튼을 아래로 밀어냄 */
+            flex-grow: 1;
         }
 
-        /* 카드 하단 바로가기 안내 선 */
         .go-btn {
             font-size: 14px;
             font-weight: bold;
@@ -180,7 +175,7 @@
             text-decoration: underline;
         }
 
-        /* 카드 종류별 포인트 컬러 스티커 */
+        /* 뱃지 */
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -189,13 +184,13 @@
             font-weight: bold;
             margin-bottom: 12px;
             text-transform: uppercase;
-            align-self: flex-start; /* 뱃지가 텍스트 길이만큼만 차지하도록 */
+            align-self: flex-start;
         }
         .badge-bio { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
         .badge-chem { background-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
         .badge-ready { background-color: rgba(148, 163, 184, 0.1); color: var(--text-desc); }
 
-        /* 커스텀 모달 스타일 (추가 기능) */
+        /* 커스텀 모달 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px);
@@ -231,22 +226,22 @@
         }
         .modal-btn:hover { background: #60a5fa; }
 
-        /* 하단 푸터 (추가 기능) */
+        /* 하단 푸터 */
         .portal-footer {
             width: 100%;
             text-align: center;
             padding: 20px 0;
             font-size: 13px;
             color: #475569;
-            margin-top: auto; /* 콘텐츠가 적어도 화면 하단에 위치하게 함 */
+            margin-top: auto;
         }
     </style>
 </head>
 <body>
 
     <div class="nav-header">
-        <a href="https://blog.naver.com/biologue_" class="nav-btn">🌐 개발자 블로그</a>
-        <a href="https://www.instagram.com/biologist_logue" class="nav-btn">📸 인스타그램</a>
+        <a href="https://blog.naver.com/biologue_" target="_blank" class="nav-btn">🌐 개발자 블로그</a>
+        <a href="https://www.instagram.com/biologist_logue" target="_blank" class="nav-btn">📸 인스타그램</a>
     </div>
 
     <div class="portal-container">
@@ -257,7 +252,7 @@
 
         <main class="tools-grid">
 
-            <a href="./Cell-energy-synthesis/" class="tool-card">
+            <a href="./Cell-energy-synthesis/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-chem">세포와 물질대사</span>
                     <h3>🔋 세포 호흡 & 광합성</h3>
@@ -266,7 +261,7 @@
                 <div class="go-btn">실험실 입장하기 →</div>
             </a>
 
-            <a href="https://enzyme-3d-simulator.streamlit.app/" class="tool-card">
+            <a href="https://enzyme-3d-simulator.streamlit.app/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-chem">생명 시스템</span>
                     <h3>🧪 효소 활성화 시뮬레이터</h3>
@@ -275,7 +270,7 @@
                 <div class="go-btn">실험실 입장하기 →</div>
             </a>
 
-            <a href="https://biologist-logue.github.io/cell-game/" class="tool-card">
+            <a href="https://biologist-logue.github.io/cell-game/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-bio">물질의 구성</span>
                     <h3>🧪 세포 구조 추리 게임</h3>
@@ -284,7 +279,7 @@
                 <div class="go-btn">실험실 입장하기 →</div>
             </a>
 
-            <a href="./central-dogma-race/" class="tool-card">
+            <a href="./central-dogma-race/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-bio">생명 시스템</span>
                     <h3>🧬 단백질 만들기 레이스</h3>
@@ -293,7 +288,7 @@
                 <div class="go-btn" style="color: var(--accent-green);">실험실 입장하기 →</div>
             </a>
 
-            <a href="./urban-nature-mapper/" class="tool-card">
+            <a href="./urban-nature-mapper/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-bio">생명 시스템</span>
                     <h3>📍 지역 생태계 맵핑</h3>
@@ -302,7 +297,7 @@
                 <div class="go-btn" style="color: var(--accent-green);">실험실 입장하기 →</div>
             </a>
             
-            <a href="https://biologist-logue.github.io/BioTree/" class="tool-card">
+            <a href="https://biologist-logue.github.io/BioTree/" target="_blank" class="tool-card">
                 <div class="tool-content">
                     <span class="badge badge-bio">생명 시스템</span>
                     <h3>🪸 생물 분류 대시보드/게임</h3>
@@ -356,7 +351,6 @@
     </div>
 
     <script>
-        // 모달 열기 함수
         function customAlert(message) {
             const modal = document.getElementById('customModal');
             const modalMessage = document.getElementById('modalMessage');
@@ -364,13 +358,11 @@
             modal.classList.add('active');   
         }
 
-        // 모달 닫기 함수
         function closeModal() {
             const modal = document.getElementById('customModal');
             modal.classList.remove('active'); 
         }
 
-        // 모달 바깥쪽 어두운 배경 클릭 시 닫히는 기능
         window.addEventListener('click', function(event) {
             const modal = document.getElementById('customModal');
             if (event.target === modal) {
