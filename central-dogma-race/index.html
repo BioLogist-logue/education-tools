@@ -7,13 +7,11 @@
     
     <script>
     (function() {
-        // 1. 우클릭 원천 차단
         window.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             e.stopPropagation();
         }, true);
 
-        // 2. 개발자 도구 단축키 전면 마비
         window.addEventListener('keydown', function(e) {
             if (e.key === 'F12') {
                 e.preventDefault(); e.stopPropagation(); return false;
@@ -113,35 +111,48 @@
         }
         .mk-btn:active { background: #ff007c; transform: scale(0.9); }
 
-        /* 번역 스크린 - 2단 분리 */
-        #translation-layout { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 50px 10px 10px 10px; box-sizing: border-box; }
-        .tl-top { flex: 0.4; display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 2px dashed #31578a; padding-bottom: 10px; margin-bottom: 10px;}
-        .tl-bottom { flex: 0.6; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; }
+        /* ====================================================
+           번역 스크린 - PC(가로 나란히) vs 모바일(세로 스크롤) 
+           ==================================================== */
+        #translation-screen {
+            justify-content: flex-start;
+        }
+        
+        #translation-layout { 
+            display: flex; flex-direction: row; /* PC 기본은 좌우 나란히 */
+            width: 100%; height: 100%; padding: 60px 20px 20px 20px; box-sizing: border-box; gap: 20px;
+        }
+        .tl-left { 
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
+        }
+        .tl-right { 
+            flex: 1.2; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; 
+        }
 
-        #translation-screen h2 { color: #ff007c; font-size: 24px; margin: 0 0 5px 0;}
+        #translation-screen h2 { color: #ff007c; font-size: 24px; margin: 0 0 15px 0;}
         #mrna-display {
-            background: rgba(11, 20, 38, 0.8); padding: 10px; border-radius: 10px; border: 1px solid #ff007c;
-            font-size: 20px; letter-spacing: 2px; margin-bottom: 10px; text-align: center; width: 95%; max-width: 600px;
+            background: rgba(11, 20, 38, 0.8); padding: 15px; border-radius: 10px; border: 1px solid #ff007c;
+            font-size: 20px; letter-spacing: 2px; margin-bottom: 20px; text-align: center; width: 95%; max-width: 600px;
         }
         .codon { display: inline-block; margin: 0 3px; padding: 4px; border-radius: 5px; transition: 0.3s; }
         .codon.active { background: #ffcc00; color: #000; transform: scale(1.2); font-weight: bold; box-shadow: 0 0 10px #ffcc00; }
         .codon.done { color: #00ffcc; text-decoration: underline; }
         
         #amino-chain {
-            min-height: 50px; width: 95%; max-width: 600px; padding: 10px;
-            border: 1px solid #00a2ff; background: rgba(0,0,0,0.5); border-radius: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; align-content: flex-start;
+            min-height: 80px; width: 95%; max-width: 600px; padding: 15px;
+            border: 1px dashed #00a2ff; background: rgba(0,0,0,0.5); border-radius: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; align-content: flex-start;
         }
-        .amino-acid { background: #1f3d68; padding: 6px 12px; border-radius: 20px; border: 2px solid #00a2ff; font-size: 14px; font-weight:bold; color: white; animation: popIn 0.3s; }
+        .amino-acid { background: #1f3d68; padding: 8px 14px; border-radius: 20px; border: 2px solid #00a2ff; font-size: 15px; font-weight:bold; color: white; animation: popIn 0.3s; }
 
         /* 클릭 가능한 코돈표 */
         #codon-table-container { width: 100%; max-width: 800px; }
-        .codon-table { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 13px; text-align: center; }
-        .codon-table th { background: #1f3d68; color: #00ffcc; padding: 5px; border-radius: 4px;}
-        .codon-table td { background: #0b1426; border: 1px solid #31578a; border-radius: 6px; padding: 8px 2px; transition: 0.2s; cursor: pointer; }
+        .codon-table { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 13px; text-align: center; }
+        .codon-table th { background: #1f3d68; color: #00ffcc; padding: 8px; border-radius: 6px;}
+        .codon-table td { background: #0b1426; border: 1px solid #31578a; border-radius: 8px; padding: 10px 4px; transition: 0.2s; cursor: pointer; }
         .codon-table td:hover { background: #1f3d68; transform: scale(1.03); border-color: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.5); }
         .codon-table td:active { transform: scale(0.95); background: #00a2ff; }
-        .cell-codon-text { display: block; font-weight: bold; color: #00a2ff; font-size: 14px; margin-bottom: 3px; letter-spacing: 1px;}
-        .cell-amino-text { display: block; color: #e2e8f0; font-size: 12px; }
+        .cell-codon-text { display: block; font-weight: bold; color: #00a2ff; font-size: 15px; margin-bottom: 4px; letter-spacing: 1px;}
+        .cell-amino-text { display: block; color: #e2e8f0; font-size: 13px; }
 
         /* 모달 팝업 */
         .modal-overlay {
@@ -166,15 +177,38 @@
         #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
         .btn { background: linear-gradient(135deg, #00ffcc 0%, #00a2ff 100%); border: none; color: #050c1a; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px; }
 
+        /* ====================================================
+           반응형 모바일 최적화 구역
+           ==================================================== */
         @media (max-width: 768px) {
             body { padding: 10px; }
-            /* 캔버스 비율 및 크기 최적화 */
-            #game-container { height: auto; min-height: 60vh; margin-top: 40px; }
-            canvas { width: 100%; height: auto; aspect-ratio: 16/9; } 
+            #game-container { height: 75vh; margin-top: 40px; }
+            
+            /* 캔버스 DNA 거대화 패치! 비율을 무시하고 높이를 꽉 채운 후 왼쪽으로 당김 */
+            canvas { 
+                width: auto !important; 
+                height: 100% !important; 
+                max-width: none !important; 
+                position: relative;
+                left: -15%; 
+            }
             
             #title-screen h1 { font-size: 28px; }
-            .codon-table { font-size: 11px; }
-            .cell-codon-text { font-size: 12px; }
+            
+            /* 모바일 번역 스크롤 해방 패치! */
+            #translation-screen { overflow-y: auto; }
+            #translation-layout { 
+                flex-direction: column; /* 세로 배치 */
+                height: auto; min-height: 100%; 
+                padding: 60px 5px 20px 5px; gap: 10px; 
+            }
+            .tl-left { flex: none; height: auto; }
+            .tl-right { flex: none; height: auto; overflow-y: visible; }
+            
+            .codon-table { font-size: 11px; border-spacing: 2px;}
+            .codon-table th { padding: 4px; }
+            .codon-table td { padding: 6px 2px; }
+            .cell-codon-text { font-size: 12px; margin-bottom: 2px; }
             .cell-amino-text { font-size: 10px; letter-spacing: -0.5px;}
         }
     </style>
@@ -217,7 +251,6 @@
     </div>
 
     <div id="game-container">
-        
         <div id="ui-layer" style="display:none;">
             <div id="score-box" class="hud-box">SCORE: <span id="score">0</span></div>
             <button class="home-btn" onclick="resetToTitle()">🏠 Home</button>
@@ -244,12 +277,12 @@
 
         <div id="translation-screen" class="screen">
             <div id="translation-layout">
-                <div class="tl-top">
+                <div class="tl-left">
                     <h2>단백질 번역 진행중</h2>
                     <div id="mrna-display"></div>
                     <div id="amino-chain"></div>
                 </div>
-                <div class="tl-bottom">
+                <div class="tl-right">
                     <div id="codon-table-container"></div>
                 </div>
             </div>
@@ -332,7 +365,7 @@
             }
         }
 
-        // 점수 저장 (.select() 추가하여 확실히 저장되도록 수정!)
+        // 점수 저장 (에러 해결: select() 구문 추가)
         async function saveScoreToSupabase() {
             const statusDiv = document.getElementById('save-status');
             if (!dbClient) {
@@ -346,12 +379,12 @@
                 const { data, error } = await dbClient
                     .from('central_dogma_scores')
                     .insert([{ nickname: currentNickname, score: score }])
-                    .select(); // INSERT 결과를 받아오도록 수정 (저장 실패 방지)
+                    .select(); // INSERT 결과를 받아오도록 수정 (저장 실패 원천 차단)
                 
                 if (error) throw error;
                 statusDiv.innerText = "🎉 랭킹 등록 완료! 순위표를 확인해보세요!";
             } catch (err) {
-                statusDiv.innerText = `⚠️ 저장 실패: 서버 연동 설정을 확인해주세요! (${err.message})`;
+                statusDiv.innerText = `⚠️ 저장 실패: 수파베이스 설정(RLS 등)을 확인해주세요!`;
                 console.error(err);
             }
         }
@@ -438,7 +471,7 @@
             if(screenId === 'gameCanvas') {
                 document.getElementById(screenId).style.display = 'block';
                 document.getElementById('ui-layer').style.display = 'flex';
-                // 1단계 전사 게임 화면에서만 모바일 키보드 보이게 하기!
+                // 1단계 전사 게임 화면에서만 모바일 키보드 나타나기
                 if(window.innerWidth <= 768) {
                     document.getElementById('mobile-keyboard').style.display = 'flex';
                 }
