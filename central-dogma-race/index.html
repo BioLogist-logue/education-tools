@@ -168,8 +168,10 @@
 
         @media (max-width: 768px) {
             body { padding: 10px; }
-            #game-container { height: 85vh; margin-top: 40px; }
-            #mobile-keyboard { display: flex; }
+            /* 캔버스 비율 및 크기 최적화 */
+            #game-container { height: auto; min-height: 60vh; margin-top: 40px; }
+            canvas { width: 100%; height: auto; aspect-ratio: 16/9; } 
+            
             #title-screen h1 { font-size: 28px; }
             .codon-table { font-size: 11px; }
             .cell-codon-text { font-size: 12px; }
@@ -215,6 +217,7 @@
     </div>
 
     <div id="game-container">
+        
         <div id="ui-layer" style="display:none;">
             <div id="score-box" class="hud-box">SCORE: <span id="score">0</span></div>
             <button class="home-btn" onclick="resetToTitle()">🏠 Home</button>
@@ -270,9 +273,8 @@
         const SUPABASE_URL = 'https://fjcddgvhsauwyqzfrmur.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqY2RkZ3Zoc2F1d3lxemZybXVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5ODQwNTQsImV4cCI6MjA5NjU2MDA1NH0.KR3SiOsZl4LBI4hL4YYuPdBIXOP1C2kiwZ5uExohZZI';
         
-        let dbClient = null; // 충돌 방지를 위해 이름 변경! (supabase -> dbClient)
+        let dbClient = null;
 
-        // 스크립트 사망 방지용 안전 장치 (try-catch)
         try {
             if (window.supabase) {
                 dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -330,7 +332,7 @@
             }
         }
 
-        // 점수 저장
+        // 점수 저장 (.select() 추가하여 확실히 저장되도록 수정!)
         async function saveScoreToSupabase() {
             const statusDiv = document.getElementById('save-status');
             if (!dbClient) {
@@ -341,14 +343,16 @@
             statusDiv.innerText = "명예의 전당에 점수를 기록하는 중... ✍️";
             
             try {
-                const { error } = await dbClient
+                const { data, error } = await dbClient
                     .from('central_dogma_scores')
-                    .insert([{ nickname: currentNickname, score: score }]);
+                    .insert([{ nickname: currentNickname, score: score }])
+                    .select(); // INSERT 결과를 받아오도록 수정 (저장 실패 방지)
                 
                 if (error) throw error;
                 statusDiv.innerText = "🎉 랭킹 등록 완료! 순위표를 확인해보세요!";
             } catch (err) {
-                statusDiv.innerText = `⚠️ 저장 실패: 서버에 접속할 수 없습니다.`;
+                statusDiv.innerText = `⚠️ 저장 실패: 서버 연동 설정을 확인해주세요! (${err.message})`;
+                console.error(err);
             }
         }
 
@@ -427,12 +431,17 @@
         function switchScreen(screenId) {
             document.querySelectorAll('.screen, canvas').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+            
+            // 모든 화면 전환 시 일단 모바일 키보드 숨기기
             document.getElementById('mobile-keyboard').style.display = 'none';
 
             if(screenId === 'gameCanvas') {
                 document.getElementById(screenId).style.display = 'block';
                 document.getElementById('ui-layer').style.display = 'flex';
-                if(window.innerWidth <= 768) document.getElementById('mobile-keyboard').style.display = 'flex';
+                // 1단계 전사 게임 화면에서만 모바일 키보드 보이게 하기!
+                if(window.innerWidth <= 768) {
+                    document.getElementById('mobile-keyboard').style.display = 'flex';
+                }
             } else {
                 let s = document.getElementById(screenId);
                 s.style.display = 'flex'; s.classList.add('active');
@@ -490,6 +499,8 @@
 
                 if (currentTxIndex >= dnaNodes.length) {
                     txActive = false;
+                    // 전사가 끝나면 터치 키보드를 즉시 사라지게 함
+                    document.getElementById('mobile-keyboard').style.display = 'none';
                     setTimeout(() => startTranslation(), 1000); 
                 }
             } else {
