@@ -114,20 +114,14 @@
         /* ====================================================
            번역 스크린 - PC(가로 나란히) vs 모바일(세로 스크롤) 
            ==================================================== */
-        #translation-screen {
-            justify-content: flex-start;
-        }
+        #translation-screen { justify-content: flex-start; }
         
         #translation-layout { 
-            display: flex; flex-direction: row; /* PC 기본은 좌우 나란히 */
+            display: flex; flex-direction: row; 
             width: 100%; height: 100%; padding: 60px 20px 20px 20px; box-sizing: border-box; gap: 20px;
         }
-        .tl-left { 
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
-        }
-        .tl-right { 
-            flex: 1.2; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; 
-        }
+        .tl-left { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        .tl-right { flex: 1.2; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; width: 100%; }
 
         #translation-screen h2 { color: #ff007c; font-size: 24px; margin: 0 0 15px 0;}
         #mrna-display {
@@ -154,7 +148,7 @@
         .cell-codon-text { display: block; font-weight: bold; color: #00a2ff; font-size: 15px; margin-bottom: 4px; letter-spacing: 1px;}
         .cell-amino-text { display: block; color: #e2e8f0; font-size: 13px; }
 
-        /* 모달 팝업 */
+        /* 모달 팝업 공통 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 12, 26, 0.85);
             display: none; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px);
@@ -164,7 +158,12 @@
             box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); text-align: center; color: #e2e8f0; line-height: 1.6; max-height: 80vh; overflow-y: auto;
         }
         .modal-content h3 { color: #00ffcc; font-size: 26px; margin-top: 0; border-bottom: 1px dashed #1f3d68; padding-bottom: 10px; }
-        .close-modal-btn { background: #ff007c; border: none; color: #fff; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        .close-modal-btn { background: #ff007c; border: none; color: #fff; padding: 10px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; transition: 0.2s;}
+        .close-modal-btn:hover { transform: scale(1.05); }
+
+        /* 커스텀 에러 알림창 팝업 스타일 추가! */
+        .error-modal-content { border-color: #ff5555; box-shadow: 0 0 20px rgba(255, 85, 85, 0.4); }
+        .error-modal-content h3 { color: #ff5555; border-bottom-color: #ff5555; }
 
         /* 순위표 리스트 */
         #leaderboard-list { list-style: none; padding: 0; margin: 0; text-align: left; }
@@ -177,29 +176,21 @@
         #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
         .btn { background: linear-gradient(135deg, #00ffcc 0%, #00a2ff 100%); border: none; color: #050c1a; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px; }
 
-        /* ====================================================
-           반응형 모바일 최적화 구역
-           ==================================================== */
+        /* 반응형 모바일 최적화 구역 */
         @media (max-width: 768px) {
             body { padding: 10px; }
             #game-container { height: 75vh; margin-top: 40px; }
             
-            /* 캔버스 DNA 거대화 패치! 비율을 무시하고 높이를 꽉 채운 후 왼쪽으로 당김 */
             canvas { 
-                width: auto !important; 
-                height: 100% !important; 
-                max-width: none !important; 
-                position: relative;
-                left: -15%; 
+                width: auto !important; height: 100% !important; max-width: none !important; 
+                position: relative; left: -15%; 
             }
             
             #title-screen h1 { font-size: 28px; }
             
-            /* 모바일 번역 스크롤 해방 패치! */
             #translation-screen { overflow-y: auto; }
             #translation-layout { 
-                flex-direction: column; /* 세로 배치 */
-                height: auto; min-height: 100%; 
+                flex-direction: column; height: auto; min-height: 100%; 
                 padding: 60px 5px 20px 5px; gap: 10px; 
             }
             .tl-left { flex: none; height: auto; }
@@ -250,7 +241,16 @@
         </div>
     </div>
 
+    <div id="alert-modal" class="modal-overlay">
+        <div class="modal-content error-modal-content">
+            <h3>⚠️ 알림</h3>
+            <p id="alert-message" style="font-size: 18px; margin: 20px 0; font-weight: bold;"></p>
+            <button class="close-modal-btn" style="background:#ff5555;" onclick="document.getElementById('alert-modal').style.display='none'">확인</button>
+        </div>
+    </div>
+
     <div id="game-container">
+        
         <div id="ui-layer" style="display:none;">
             <div id="score-box" class="hud-box">SCORE: <span id="score">0</span></div>
             <button class="home-btn" onclick="resetToTitle()">🏠 Home</button>
@@ -320,12 +320,10 @@
 
         let currentNickname = "";
 
-        // 사이드바 토글
         function toggleSidebar() { 
             document.getElementById('sidebar').classList.toggle('open'); 
         }
 
-        // 순위표 불러오기
         async function openLeaderboard() {
             toggleSidebar();
             const modal = document.getElementById('leaderboard-modal');
@@ -365,7 +363,6 @@
             }
         }
 
-        // 점수 저장 (에러 해결: select() 구문 추가)
         async function saveScoreToSupabase() {
             const statusDiv = document.getElementById('save-status');
             if (!dbClient) {
@@ -379,7 +376,7 @@
                 const { data, error } = await dbClient
                     .from('central_dogma_scores')
                     .insert([{ nickname: currentNickname, score: score }])
-                    .select(); // INSERT 결과를 받아오도록 수정 (저장 실패 원천 차단)
+                    .select(); 
                 
                 if (error) throw error;
                 statusDiv.innerText = "🎉 랭킹 등록 완료! 순위표를 확인해보세요!";
@@ -461,23 +458,31 @@
             return rna.map(base => revMap[base]);
         }
 
+        /* 버그 해결 0번: 캔버스 숨김 처리 완벽 보강! */
         function switchScreen(screenId) {
-            document.querySelectorAll('.screen, canvas').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.screen').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none';
+            });
             
-            // 모든 화면 전환 시 일단 모바일 키보드 숨기기
+            // 핵심! 어떤 화면으로 가든 일단 캔버스를 무조건 숨깁니다 (좀비 현상 차단)
+            const gameCanvas = document.getElementById('gameCanvas');
+            gameCanvas.style.display = 'none';
+            
             document.getElementById('mobile-keyboard').style.display = 'none';
 
             if(screenId === 'gameCanvas') {
-                document.getElementById(screenId).style.display = 'block';
+                gameCanvas.style.display = 'block'; // 게임 화면일때만 짜잔!
                 document.getElementById('ui-layer').style.display = 'flex';
-                // 1단계 전사 게임 화면에서만 모바일 키보드 나타나기
                 if(window.innerWidth <= 768) {
                     document.getElementById('mobile-keyboard').style.display = 'flex';
                 }
             } else {
                 let s = document.getElementById(screenId);
-                s.style.display = 'flex'; s.classList.add('active');
+                if (s) {
+                    s.style.display = 'flex'; 
+                    s.classList.add('active');
+                }
                 if(screenId === 'title-screen') document.getElementById('ui-layer').style.display = 'none';
             }
         }
@@ -491,9 +496,14 @@
             switchScreen('title-screen'); 
         }
 
+        /* 버그 해결 1번: 투박한 alert 대신 커스텀 모달 띄우기! */
         function startGame(codonCount) {
             const nickInput = document.getElementById('nickname-input').value.trim();
-            if(!nickInput) { alert("주인님! 순위에 등록할 닉네임을 꼭 작성해주세요!"); return; }
+            if(!nickInput) { 
+                document.getElementById('alert-message').innerText = "주인님! 순위에 등록할 닉네임을 꼭 작성해주세요! 📝";
+                document.getElementById('alert-modal').style.display = 'flex';
+                return; 
+            }
             currentNickname = nickInput;
 
             score = 0; combo = 0; updateScore(0);
@@ -532,7 +542,6 @@
 
                 if (currentTxIndex >= dnaNodes.length) {
                     txActive = false;
-                    // 전사가 끝나면 터치 키보드를 즉시 사라지게 함
                     document.getElementById('mobile-keyboard').style.display = 'none';
                     setTimeout(() => startTranslation(), 1000); 
                 }
