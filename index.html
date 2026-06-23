@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script>
+        (function() {
+            window.addEventListener('contextmenu', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+            window.addEventListener('keydown', function(e) {
+                if (e.key === 'F12') { e.preventDefault(); e.stopPropagation(); }
+                if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) { e.preventDefault(); e.stopPropagation(); }
+                if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); e.stopPropagation(); }
+            }, true);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BioLogue: 과학 교육 인터랙티브 툴킷</title>
