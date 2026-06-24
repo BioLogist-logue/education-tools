@@ -335,13 +335,7 @@ st.sidebar.markdown("""
 st.sidebar.markdown("""
     <br><br>
     <div style='background-color:#F1F5F9; padding:15px; border-radius:10px; text-align:center; border: 1px solid #E2E8F0;'>
-        <a href='https://biologist-logue.github.io/cell-game/' target='_blank' style='color:#1a7689; text-decoration:none; font-weight:800; font-size:1.1rem;'>🎮세포 추리게임 바로가기</a>
-    </div>
-""", unsafe_allow_html=True)
-st.sidebar.markdown("""
-    <br><br>
-    <div style='background-color:#F1F5F9; padding:15px; border-radius:10px; text-align:center; border: 1px solid #E2E8F0;'>
-        <a href='https://biologist-logue.github.io/BioTree/' target='_blank' style='color:#1a7689; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌿생물분류 대시보드 바로가기</a>
+        <a href='https://biologue-tools.vercel.app/' target='_blank' style='color:#1a7689; text-decoration:none; font-weight:800; font-size:1.1rem;'>🌻에듀테크 허브 바로가기</a>
     </div>
 """, unsafe_allow_html=True)
 st.markdown("<br><hr><center>© 2026 All rights reserved by BioLogist. <biologue_ Lab></center>", unsafe_allow_html=True)
