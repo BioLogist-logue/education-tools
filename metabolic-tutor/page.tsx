@@ -94,16 +94,96 @@ export default function MetabolicNexusApp() {
             </div>
             
             {/* AI 튜터 채팅 영역 */}
-            <div className="w-full md:w-1/3 bg-white shadow-md rounded p-4 flex flex-col">
-              <h3 className="font-bold mb-2">🤖 Gemini 인지 튜터</h3>
-              <div className="flex-grow border rounded p-2 overflow-y-auto mb-2 bg-gray-50">
-                {/* TODO: 채팅 로그 매핑 */}
-                <p className="text-sm bg-blue-100 p-2 rounded w-3/4 mb-2">포도당 1분자를 넣으셨군요! 세포호흡 과정에서 전자는 어디로 이동할까요?</p>
-              </div>
-              <input type="text" placeholder="답변을 입력하세요..." className="border p-2 rounded w-full" />
-            </div>
+'use client';
+import React, { useState } from 'react';
+
+export default function StudentDashboard({ userInfo }) {
+  // 시뮬레이터 상태
+  const [currentTab, setCurrentTab] = useState('산화적 인산화');
+  const [glucoseCount, setGlucoseCount] = useState(1);
+  
+  // 채팅 상태
+  const [messageInput, setMessageInput] = useState('');
+  const [chatHistory, setChatHistory] = useState([
+    { role: 'tutor', content: '환영합니다! 포도당 1분자를 넣으셨군요. 전자는 어디로 이동할까요?' }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 메시지 전송 함수 (버튼 클릭 시 실행)
+  const sendMessage = async () => {
+    if (!messageInput.trim()) return;
+
+    // 1. 내(학생) 메시지를 화면에 먼저 추가
+    const newHistory = [...chatHistory, { role: 'student', content: messageInput }];
+    setChatHistory(newHistory);
+    setMessageInput('');
+    setIsLoading(true);
+
+    try {
+      // 2. 백엔드(app/api/chat/route.ts)로 데이터 전송
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentMessage: messageInput,
+          currentTab: currentTab,
+          glucoseCount: glucoseCount,
+          studentInfo: userInfo // 로그인 시 받았던 이름/이메일
+        }),
+      });
+
+      const aiData = await res.json();
+
+      // 3. AI 답변을 화면에 추가
+      setChatHistory([...newHistory, { role: 'tutor', content: aiData.tutor_reply }]);
+      
+    } catch (error) {
+      console.error('채팅 전송 실패:', error);
+      alert('튜터와 연결이 끊어졌습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-white shadow-md rounded p-4">
+      <h3 className="font-bold mb-2">🤖 Gemini 인지 튜터</h3>
+      
+      {/* 대화 기록 표시 창 */}
+      <div className="flex-grow border rounded p-4 overflow-y-auto mb-2 bg-gray-50 flex flex-col space-y-3">
+        {chatHistory.map((chat, index) => (
+          <div key={index} className={`flex ${chat.role === 'student' ? 'justify-end' : 'justify-start'}`}>
+            <span className={`p-2 rounded-lg max-w-[80%] ${
+              chat.role === 'student' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'
+            }`}>
+              {chat.content}
+            </span>
           </div>
-        )}
+        ))}
+        {isLoading && <div className="text-gray-400 text-sm">튜터가 생각하는 중...</div>}
+      </div>
+
+      {/* 입력 창 및 전송 버튼 */}
+      <div className="flex space-x-2">
+        <input 
+          type="text" 
+          value={messageInput}
+          onChange={(e) => setMessageInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="선생님, 질문 있어요!" 
+          className="border p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400" 
+        />
+        <button 
+          onClick={sendMessage}
+          disabled={isLoading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          전송
+        </button>
+      </div>
+    </div>
+  );
+}
 
       </main>
 
