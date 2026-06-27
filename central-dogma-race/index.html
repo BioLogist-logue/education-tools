@@ -70,10 +70,10 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(5, 12, 26, 0.95);
-            box-sizing: border-box; /* 띨빡이의 치명적 실수 해결! 버튼 가출 방지! */
-            overflow-y: auto; /* 모든 화면 시원하게 스크롤 허용! */
+            box-sizing: border-box;
+            overflow-y: auto; 
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+            -webkit-overflow-scrolling: touch; 
         }
         .screen.active { display: flex; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -99,7 +99,7 @@
         canvas { display: block; width: 100%; height: 100%; }
         #ui-layer {
             position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            pointer-events: none; /* UI 레이어 자체는 클릭을 방해하지 않도록 수정! */
+            pointer-events: none; 
             display: flex; justify-content: center; align-items: center; gap: 10px; font-size: 14px; font-weight: bold; z-index: 10; width: 100%;
         }
         .hud-box { background: rgba(11, 20, 38, 0.8); padding: 6px 12px; border-radius: 8px; border: 1px solid #31578a; pointer-events: auto; }
@@ -117,7 +117,7 @@
         .mk-btn:active { background: #ff007c; transform: scale(0.9); }
 
         /* 번역 스크린 */
-        #translation-screen { justify-content: flex-start; padding-bottom: 80px; }
+        #translation-screen { justify-content: flex-start; padding-bottom: 80px;}
         #translation-layout { 
             display: flex; flex-direction: row; 
             width: 100%; height: 100%; padding: 60px 20px 20px 20px; box-sizing: border-box; gap: 20px;
@@ -191,7 +191,6 @@
         .fold-bead {
             width: 26px; height: 26px; border-radius: 50%; position: absolute;
             display: flex; justify-content: center; align-items: center; font-size: 11px; font-weight: bold; color: #000;
-            /* 중심점을 (left, top) 좌표에 맞추기 위한 트랜스폼 */
             transform: translate(-50%, -50%);
             transition: left 1s cubic-bezier(0.68, -0.55, 0.265, 1.55), top 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             box-shadow: inset -3px -3px 6px rgba(0,0,0,0.4), 0 0 5px rgba(255,255,255,0.4);
@@ -207,7 +206,7 @@
             filter: drop-shadow(0 0 3px rgba(0,255,204,0.3));
         }
 
-        /* 🌟 클릭 가능한 코돈표 (띨빡이가 실수로 빼먹었던 부분 완벽 복구 완료! ㅠㅠ) 🌟 */
+        /* 클릭 가능한 코돈표 */
         #codon-table-container { width: 100%; max-width: 800px; pointer-events: auto; }
         .codon-table { width: 100%; border-collapse: separate; border-spacing: 3px; font-size: 13px; text-align: center; }
         .codon-table th { background: #1f3d68; color: #00ffcc; padding: 8px; border-radius: 6px;}
@@ -244,17 +243,16 @@
         #footer { font-size: 12px; color: #4a5568; text-align: center; margin-top: auto; padding-top: 20px; }
 
         /* 결과 화면 */
-        #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); }
+        #game-over-screen h1 { font-size: 40px; color: #ffcc00; text-shadow: 0 0 20px rgba(255, 204, 0, 0.5); flex-shrink: 0;}
         .btn { background: linear-gradient(135deg, #00ffcc 0%, #00a2ff 100%); border: none; color: #050c1a; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 25px; cursor: pointer; margin-top: 20px; transition: 0.3s;}
         .btn:hover { transform: scale(1.05); box-shadow: 0 0 15px #00ffcc;}
 
         @media (max-width: 768px) {
             body { padding: 10px; }
-            #game-container { height: calc(100vh - 80px); margin-top: 55px; } /* 햄버거 메뉴와 안 겹치게 내림, 폰 화면 높이에 딱 맞춤! */
+            #game-container { height: calc(100vh - 80px); margin-top: 55px; } 
             canvas { width: auto !important; height: 100% !important; max-width: none !important; position: relative; left: -15%; }
             #title-screen h1 { font-size: 28px; }
             
-            /* 👇 띨빡이의 과도한 여백 다이어트 👇 */
             #translation-screen { padding-top: 60px; padding-bottom: 80px; } 
             #protein-structure-screen { padding-top: 70px; padding-bottom: 80px; } 
             #translation-layout { flex-direction: column; height: auto; min-height: 100%; padding: 0 5px 50px 5px; gap: 10px; }
@@ -295,7 +293,7 @@
         <a href="https://biologue-tools.vercel.app/" target="_blank" class="sidebar-link">🚀 에듀테크 허브 바로가기</a>
     </div>
 
-    <!-- 기존 설명 모달들 -->
+    <!-- 게임 방법 모달 -->
     <div id="how-to-modal" class="modal-overlay">
         <div class="modal-content" style="text-align: center;">
             <h3>📖 게임 방법</h3>
@@ -311,7 +309,7 @@
         </div>
     </div>
 
-    <!-- 🌟 새롭게 추가된 단백질 구조 설명 모달 🌟 -->
+    <!-- 단백질 구조 설명 모달 -->
     <div id="structure-info-modal" class="modal-overlay">
         <div class="modal-content">
             <h3>📖 단백질 입체 구조란?</h3>
@@ -405,7 +403,7 @@
                     <div id="analysis-chain"></div>
                 </div>
 
-                <!-- 2. 단백질 접힘 구조 뷰어 (확대/축소 및 설명 모달 추가!) -->
+                <!-- 2. 단백질 접힘 구조 뷰어 -->
                 <div class="section-box">
                     <button class="info-header-btn" onclick="document.getElementById('structure-info-modal').style.display='flex'">📖 설명 보기</button>
                     <h3>2. 단백질 입체 구조 형성</h3>
@@ -418,18 +416,15 @@
                     
                     <div id="structure-visualizer">
                         <div id="structure-pan-zoom-container">
-                            <!-- SVG 선이 그려지는 층 -->
                             <svg id="structure-svg">
                                 <path id="structure-path" d="" />
                             </svg>
-                            <!-- 구슬들이 배치되는 층 -->
                             <div id="structure-beads" style="position:relative; width:100%; height:100%; z-index:2;"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 버튼 하단 마진도 120px에서 60px로 다이어트! -->
             <button class="btn" onclick="showGameOver()" style="margin-bottom: 60px; flex-shrink: 0; box-shadow: 0 0 15px rgba(0, 162, 255, 0.5);">최종 결과 및 점수 확인 ➡️</button>
         </div>
 
@@ -588,7 +583,8 @@
                         let isStop = fullAmino.includes('종결');
                         let stopStyle = isStop ? 'color:#ffcc00;' : '';
                         
-                        html += `<td onclick="checkTranslation('${fullAmino}')">
+                        // 띨빡이의 매운맛 채점 적용! 이제 아미노산 한글 이름이 아닌 '정확한 3자리 코돈'을 넘깁니다!
+                        html += `<td onclick="checkTranslation('${codon}')">
                                     <span class="cell-codon-text">${codon}</span>
                                     <span class="cell-amino-text" style="${stopStyle}">${displayAmino}</span>
                                  </td>`;
@@ -651,7 +647,7 @@
         function resetToTitle() { 
             gameState = 'title'; 
             switchScreen('title-screen'); 
-            cancelAnimationFrame(lineAnimFrame); // 애니메이션 찌꺼기 끄기
+            cancelAnimationFrame(lineAnimFrame); 
         }
 
         function startGame(codonCount) {
@@ -800,11 +796,15 @@
             }
         }
 
-        function checkTranslation(selectedAminoFull) {
+        // 🌟 띨빡이의 매운맛 채점 🌟
+        function checkTranslation(selectedCodon) {
             const currentCodon = codons[currentTlIndex];
             const correctAminoFull = codonDict[currentCodon]; 
             
-            if (selectedAminoFull === correctAminoFull) {
+            // 아미노산이든 종결 코돈이든 무조건 코돈 3자리가 화면에 뜬 것과 일치해야만 정답!
+            let isCorrect = (selectedCodon === currentCodon);
+            
+            if (isCorrect) {
                 combo++; updateScore(150 + combo * 10);
                 let chain = document.getElementById('amino-chain');
                 let aa = document.createElement('div'); aa.className = 'amino-acid';
@@ -868,7 +868,7 @@
             applyPanZoom();
         });
 
-        // 모바일 터치 이벤트 (띨빡이가 핀치 줌 추가 완료!)
+        // 모바일 터치(Pinch & Zoom) 이벤트 
         let initialDistance = 0;
         let initialScaleMobile = 1;
 
@@ -942,18 +942,17 @@
             const structBtns = document.querySelectorAll('.struct-btn');
             changeStructureView(1, structBtns[0]); 
             
-            // 🌟 펩타이드 결합(선) 드로잉 애니메이션 시작!
+            // 펩타이드 결합(선) 드로잉 애니메이션 시작!
             if(lineAnimFrame) cancelAnimationFrame(lineAnimFrame);
             updateSVGPath(); 
         }
 
-        // SVG 선 그리기 업데이트 루프 (DOM의 현재 좌표를 쫓아다님)
+        // SVG 선 그리기 업데이트 루프 
         function updateSVGPath() {
             const beads = document.querySelectorAll('.fold-bead');
             if (beads.length > 0) {
                 let pathStr = "";
                 beads.forEach((bead, i) => {
-                    // 트랜지션 중에도 실시간 좌표를 가져오기 위함
                     const x = bead.offsetLeft; 
                     const y = bead.offsetTop;
                     if (i === 0) pathStr += `M ${x} ${y} `;
@@ -1020,26 +1019,24 @@
                 for(let i=0; i<total; i++) {
                     beads[i].style.left = `${startX + (i * 30)}px`;
                     beads[i].style.top = `${centerY}px`;
-                    beads[i].style.transform = `translate(-50%, -50%) scale(1)`; // 1차는 평면이므로 크기 통일
+                    beads[i].style.transform = `translate(-50%, -50%) scale(1)`; 
                 }
             } 
             else if (level === 2) {
-                // [2차 구조] 알파 나선형 모델링 (싸인 곡선 활용)
+                // [2차 구조] 알파 나선형 모델링 
                 let startX = centerX - (total * 12);
                 for(let i=0; i<total; i++) {
-                    let yOffset = Math.sin(i * 1.5) * 35;       // 물결 치듯 위아래로
-                    let zIndex = Math.floor(Math.cos(i * 1.5) * 10); // 원근감(입체감)
+                    let yOffset = Math.sin(i * 1.5) * 35;       
+                    let zIndex = Math.floor(Math.cos(i * 1.5) * 10); 
                     
                     beads[i].style.left = `${startX + (i * 24)}px`;
                     beads[i].style.top = `${centerY + yOffset}px`;
                     beads[i].style.zIndex = 10 + zIndex;
-                    // zIndex가 높은(앞에 있는) 녀석은 살짝 크게 보여 원근감을 줍니다
                     beads[i].style.transform = `translate(-50%, -50%) scale(${1 + (zIndex/30)})`;
                 }
             }
             else if (level === 3) {
-                // [3차 구조] 🌟 미니 물리 시뮬레이션 적용! (Hydrophobic Collapse) 🌟
-                // 초기 포지션을 무작위로 한 뒤, 간단한 물리 연산을 통해 최종 위치를 도출합니다.
+                // [3차 구조] 물리 시뮬레이션 적용! (Hydrophobic Collapse)
                 let positions = [];
                 for(let i=0; i<total; i++) {
                     positions.push({
@@ -1049,12 +1046,11 @@
                     });
                 }
                 
-                const TARGET_DIST = 25; // 아미노산 간 이상적인 결합 길이
+                const TARGET_DIST = 25; 
                 
-                // 100번의 반복 연산(릴랙세이션)으로 가장 안정한 구조를 찾습니다
                 for(let iter = 0; iter < 100; iter++) {
                     for(let i = 0; i < total; i++) {
-                        // 1. 소수성은 안으로 뭉치고, 친수성은 밖으로 밀어냅니다! (과학적 오류 최소화)
+                        // 1. 소수성은 안으로 뭉치고, 친수성은 밖으로 밀어냅니다!
                         let dxCenter = positions[i].x - centerX;
                         let dyCenter = positions[i].y - centerY;
                         let distToCenter = Math.sqrt(dxCenter**2 + dyCenter**2) || 1;
@@ -1063,7 +1059,7 @@
                         positions[i].x += (dxCenter / distToCenter) * force;
                         positions[i].y += (dyCenter / distToCenter) * force;
 
-                        // 2. 다른 아미노산들과 겹치지 않게 서로 튕겨냅니다 (Repulsion)
+                        // 2. 다른 아미노산들과 겹치지 않게 서로 튕겨냅니다
                         for(let j = 0; j < total; j++) {
                             if(i === j) continue;
                             let dx = positions[i].x - positions[j].x;
@@ -1075,12 +1071,12 @@
                             }
                         }
                     }
-                    // 3. 인접한 아미노산끼리 펩타이드 결합 길이(TARGET_DIST) 유지! (Spring)
+                    // 3. 인접한 아미노산끼리 펩타이드 결합 길이 유지
                     for(let i = 0; i < total - 1; i++) {
                         let dx = positions[i+1].x - positions[i].x;
                         let dy = positions[i+1].y - positions[i].y;
                         let dist = Math.sqrt(dx*dx + dy*dy) || 0.1;
-                        let diff = (TARGET_DIST - dist) * 0.3; // 텐션 강도
+                        let diff = (TARGET_DIST - dist) * 0.3; 
                         
                         positions[i].x -= (dx/dist) * diff; 
                         positions[i].y -= (dy/dist) * diff;
@@ -1093,8 +1089,8 @@
                 for(let i=0; i<total; i++) {
                     beads[i].style.left = `${positions[i].x}px`;
                     beads[i].style.top = `${positions[i].y}px`;
-                    beads[i].style.transform = `translate(-50%, -50%) scale(1)`; // 3차는 겹치는 위치(z-index)를 난수 처리
-                    beads[i].style.zIndex = Math.floor(Math.random() * 100); // 얽히고 설킨 효과
+                    beads[i].style.transform = `translate(-50%, -50%) scale(1)`; 
+                    beads[i].style.zIndex = Math.floor(Math.random() * 100); 
                 }
             }
         }
@@ -1102,7 +1098,7 @@
         /* 결과 화면으로 넘어가기 */
         function showGameOver() {
             gameState = 'over'; switchScreen('game-over-screen');
-            cancelAnimationFrame(lineAnimFrame); // 애니메이션 리소스 절약
+            cancelAnimationFrame(lineAnimFrame); 
             document.getElementById('final-score').innerText = `최종 점수: ${score} 점`;
             saveScoreToSupabase();
         }
