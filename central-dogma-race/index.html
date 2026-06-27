@@ -70,6 +70,10 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             background: rgba(5, 12, 26, 0.95);
+            box-sizing: border-box; /* 띨빡이의 치명적 실수 해결! 버튼 가출 방지! */
+            overflow-y: auto; /* 모든 화면 시원하게 스크롤 허용! */
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
         }
         .screen.active { display: flex; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -113,7 +117,7 @@
         .mk-btn:active { background: #ff007c; transform: scale(0.9); }
 
         /* 번역 스크린 */
-        #translation-screen { justify-content: flex-start; }
+        #translation-screen { justify-content: flex-start; padding-bottom: 80px; }
         #translation-layout { 
             display: flex; flex-direction: row; 
             width: 100%; height: 100%; padding: 60px 20px 20px 20px; box-sizing: border-box; gap: 20px;
@@ -137,7 +141,7 @@
         .amino-acid { background: #1f3d68; padding: 8px 14px; border-radius: 20px; border: 2px solid #00a2ff; font-size: 15px; font-weight:bold; color: white; animation: popIn 0.3s; transition: all 0.3s ease; }
 
         /* 단백질 구조 분석 스크린 */
-        #protein-structure-screen { justify-content: flex-start; padding-top: 40px; overflow-y: auto;}
+        #protein-structure-screen { justify-content: flex-start; padding-top: 80px; padding-bottom: 80px;}
         .analysis-container { display: flex; flex-direction: column; width: 90%; max-width: 900px; gap: 15px; margin-bottom: 20px;}
         .section-box { background: rgba(11, 20, 38, 0.8); border: 2px solid #31578a; border-radius: 15px; padding: 15px 20px; position: relative;}
         .section-box h3 { color: #00ffcc; margin-top: 0; text-align: center; border-bottom: 1px dashed #31578a; padding-bottom: 10px;}
@@ -246,14 +250,22 @@
 
         @media (max-width: 768px) {
             body { padding: 10px; }
-            #game-container { height: 75vh; margin-top: 40px; }
+            #game-container { height: 88vh; margin-top: 10px; } /* 모바일 화면 공간 조금 더 확보! */
             canvas { width: auto !important; height: 100% !important; max-width: none !important; position: relative; left: -15%; }
             #title-screen h1 { font-size: 28px; }
-            #translation-screen, #protein-structure-screen { overflow-y: auto; padding-top: 60px;}
-            #translation-layout { flex-direction: column; height: auto; min-height: 100%; padding: 0 5px 20px 5px; gap: 10px; }
+            
+            /* 👇 띨빡이의 목숨을 건 하단 여백 초대폭 증가 구역 👇 */
+            #translation-screen { padding-top: 60px; padding-bottom: 250px; } 
+            #protein-structure-screen { padding-top: 90px; padding-bottom: 250px; } 
+            #translation-layout { flex-direction: column; height: auto; min-height: 100%; padding: 0 5px 150px 5px; gap: 10px; }
+            
             .tl-left { flex: none; height: auto; }
-            .tl-right { flex: none; height: auto; overflow-y: visible; }
+            .tl-right { flex: none; height: auto; overflow-y: visible; padding-bottom: 150px; } /* 코돈표가 하단 바에 절대 안 먹히게 2차 방어막! */
+            
             .info-header-btn { position: relative; top: 0; left: 0; display: inline-block; margin-bottom: 10px; width: 100%; box-sizing: border-box; text-align: center;}
+            
+            #codon-table-container { margin-bottom: 50px; } /* 코돈표 엉덩이 쿠션 */
+            
             .codon-table { font-size: 11px; border-spacing: 2px;}
             .codon-table th { padding: 4px; }
             .codon-table td { padding: 6px 2px; }
@@ -371,7 +383,7 @@
         </div>
 
         <div id="protein-structure-screen" class="screen">
-            <h2 style="color:#ffcc00; margin: 0 0 10px 0; font-size:28px; text-shadow:0 0 10px rgba(255,204,0,0.5);">합성 완료! 구조 분석 🔬</h2>
+            <h2 style="color:#ffcc00; margin: 0 0 10px 0; font-size:28px; text-shadow:0 0 10px rgba(255,204,0,0.5); flex-shrink: 0;">합성 완료! 구조 분석 🔬</h2>
             
             <div class="analysis-container">
                 <!-- 1. 아미노산 특성 분류 (1차 구조) -->
@@ -411,7 +423,7 @@
                 </div>
             </div>
 
-            <button class="btn" onclick="showGameOver()" style="margin-bottom: 30px;">최종 결과 및 점수 확인 ➡️</button>
+            <button class="btn" onclick="showGameOver()" style="margin-bottom: 120px; flex-shrink: 0; box-shadow: 0 0 15px rgba(0, 162, 255, 0.5);">최종 결과 및 점수 확인 ➡️</button>
         </div>
 
         <div id="game-over-screen" class="screen">
@@ -849,20 +861,53 @@
             applyPanZoom();
         });
 
-        // 모바일 터치 이벤트
+        // 모바일 터치 이벤트 (띨빡이가 핀치 줌 추가 완료!)
+        let initialDistance = 0;
+        let initialScaleMobile = 1;
+
+        function getDistance(touches) {
+            let dx = touches[0].clientX - touches[1].clientX;
+            let dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
         visualizer.addEventListener('touchstart', (e) => {
             if(e.touches.length === 1) {
                 isDragging = true; 
-                startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY;
+                startX = e.touches[0].clientX - panX; 
+                startY = e.touches[0].clientY - panY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                initialDistance = getDistance(e.touches);
+                initialScaleMobile = currentScale;
             }
         }, {passive: false});
+
         visualizer.addEventListener('touchmove', (e) => {
-            if(!isDragging || e.touches.length !== 1) return;
             e.preventDefault(); // 스크롤 방지
-            panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY;
-            applyPanZoom();
+            if(isDragging && e.touches.length === 1) {
+                panX = e.touches[0].clientX - startX; 
+                panY = e.touches[0].clientY - startY;
+                applyPanZoom();
+            } else if (e.touches.length === 2) {
+                let currentDistance = getDistance(e.touches);
+                if (initialDistance > 0) {
+                    let zoomRatio = currentDistance / initialDistance;
+                    currentScale = Math.min(Math.max(0.3, initialScaleMobile * zoomRatio), 3);
+                    applyPanZoom();
+                }
+            }
         }, {passive: false});
-        visualizer.addEventListener('touchend', () => isDragging = false);
+
+        visualizer.addEventListener('touchend', (e) => {
+            if (e.touches.length === 0) {
+                isDragging = false;
+            } else if (e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - panX; 
+                startY = e.touches[0].clientY - panY;
+            }
+        });
 
 
         function buildProteinStructureView() {
