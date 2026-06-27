@@ -250,21 +250,21 @@
 
         @media (max-width: 768px) {
             body { padding: 10px; }
-            #game-container { height: 88vh; margin-top: 10px; } /* 모바일 화면 공간 조금 더 확보! */
+            #game-container { height: calc(100vh - 80px); margin-top: 55px; } /* 햄버거 메뉴와 안 겹치게 내림, 폰 화면 높이에 딱 맞춤! */
             canvas { width: auto !important; height: 100% !important; max-width: none !important; position: relative; left: -15%; }
             #title-screen h1 { font-size: 28px; }
             
-            /* 👇 띨빡이의 목숨을 건 하단 여백 초대폭 증가 구역 👇 */
-            #translation-screen { padding-top: 60px; padding-bottom: 250px; } 
-            #protein-structure-screen { padding-top: 90px; padding-bottom: 250px; } 
-            #translation-layout { flex-direction: column; height: auto; min-height: 100%; padding: 0 5px 150px 5px; gap: 10px; }
+            /* 👇 띨빡이의 과도한 여백 다이어트 👇 */
+            #translation-screen { padding-top: 60px; padding-bottom: 80px; } 
+            #protein-structure-screen { padding-top: 70px; padding-bottom: 80px; } 
+            #translation-layout { flex-direction: column; height: auto; min-height: 100%; padding: 0 5px 50px 5px; gap: 10px; }
             
             .tl-left { flex: none; height: auto; }
-            .tl-right { flex: none; height: auto; overflow-y: visible; padding-bottom: 150px; } /* 코돈표가 하단 바에 절대 안 먹히게 2차 방어막! */
+            .tl-right { flex: none; height: auto; overflow-y: visible; padding-bottom: 50px; } 
             
             .info-header-btn { position: relative; top: 0; left: 0; display: inline-block; margin-bottom: 10px; width: 100%; box-sizing: border-box; text-align: center;}
             
-            #codon-table-container { margin-bottom: 50px; } /* 코돈표 엉덩이 쿠션 */
+            #codon-table-container { margin-bottom: 20px; } 
             
             .codon-table { font-size: 11px; border-spacing: 2px;}
             .codon-table th { padding: 4px; }
@@ -274,6 +274,12 @@
             .filter-buttons button { font-size: 12px; padding: 6px 10px; }
             .struct-btn { font-size: 12px; padding: 6px 10px; }
             #structure-visualizer { height: 230px; }
+
+            /* 모바일 결과 화면 예쁘게 중앙 정렬! */
+            #game-over-screen { padding: 20px; justify-content: center; }
+            #game-over-screen h1 { font-size: 32px; }
+            #result-text { font-size: 16px; margin-bottom: 15px; }
+            #final-score { font-size: 26px; }
         }
     </style>
 </head>
@@ -423,7 +429,8 @@
                 </div>
             </div>
 
-            <button class="btn" onclick="showGameOver()" style="margin-bottom: 120px; flex-shrink: 0; box-shadow: 0 0 15px rgba(0, 162, 255, 0.5);">최종 결과 및 점수 확인 ➡️</button>
+            <!-- 버튼 하단 마진도 120px에서 60px로 다이어트! -->
+            <button class="btn" onclick="showGameOver()" style="margin-bottom: 60px; flex-shrink: 0; box-shadow: 0 0 15px rgba(0, 162, 255, 0.5);">최종 결과 및 점수 확인 ➡️</button>
         </div>
 
         <div id="game-over-screen" class="screen">
