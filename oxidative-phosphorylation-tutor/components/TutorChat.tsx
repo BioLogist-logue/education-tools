@@ -75,7 +75,7 @@ export function TutorChat({ student, session, state, result, prediction, initial
         <span className="rounded-md bg-marine/10 p-2 text-marine"><Bot size={20} /></span>
         <div>
           <h2 className="text-lg font-bold text-ink">AI 튜터</h2>
-          <p className="text-sm text-slate-500">정답을 바로 말하기보다 생각을 이끄는 질문을 합니다.</p>
+          <p className="text-sm text-slate-500">튜터의 질문에 답하거나 힌트를 얻어보세요.</p>
         </div>
       </div>
 
