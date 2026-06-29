@@ -42,7 +42,7 @@ export function MitochondriaDiagram({ state, result, runId }: MitochondriaDiagra
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-ink">마이토콘드리아 내막 시뮬레이션</h2>
-          <p className="text-sm text-slate-500">H<sup>+</sup> 기울기 형성, ATP 합성효소를 통한 H<sup>+</sup> 재유입, ADP의 ATP 전환을 순서대로 보여줍니다.</p>
+          <p className="text-sm text-slate-500">H<sup>+</sup> 기울기 형성, ATP 합성효소를 통한 H<sup>+</sup> 이동, ADP의 ATP 전환을 순서대로 보여줍니다.</p>
         </div>
         <span className="rounded-md bg-mint/12 px-3 py-2 text-sm font-bold text-mint">처리 조건: {treatmentLabels[state.treatment]}</span>
       </div>
