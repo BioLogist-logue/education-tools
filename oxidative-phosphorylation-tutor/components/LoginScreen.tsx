@@ -19,6 +19,7 @@ interface ReadyPayload {
 export function LoginScreen({ onReady }: { onReady: (payload: ReadyPayload) => void }) {
   const [studentNumber, setStudentNumber] = useState("");
   const [studentName, setStudentName] = useState("");
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<null | Awaited<ReturnType<typeof upsertStudentAndStartSession>>>(null);
@@ -28,6 +29,10 @@ export function LoginScreen({ onReady }: { onReady: (payload: ReadyPayload) => v
     setError("");
     if (!studentNumber.trim() || !studentName.trim()) {
       setError("학번과 이름을 모두 입력하세요.");
+      return;
+    }
+    if (!consent) {
+      setError("자료 수집 안내에 동의해야 학습을 시작할 수 있습니다.");
       return;
     }
     setLoading(true);
@@ -98,15 +103,28 @@ export function LoginScreen({ onReady }: { onReady: (payload: ReadyPayload) => v
               <span className="text-sm font-semibold text-slate-700">이름</span>
               <input value={studentName} onChange={(event) => setStudentName(event.target.value)} className="mt-2 w-full rounded-md border border-slate-300 bg-white px-4 py-3 outline-none ring-mint/30 transition focus:ring-4" placeholder="예: 김생명" />
             </label>
+
+            <label className="flex gap-3 rounded-md border border-slate-200 bg-panel p-4 text-sm leading-6 text-slate-700">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(event) => setConsent(event.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-slate-300 text-marine accent-marine"
+              />
+              <span>
+                에듀테크 교육 앱 개발을 위한 자료 수집에 동의합니다. 학번, 이름, 시뮬레이션 조건과 결과, AI 튜터 대화 기록은 수업 운영과 학습 분석을 위해 저장될 수 있습니다.
+              </span>
+            </label>
+
             {error ? <p className="rounded-md bg-coral/10 px-4 py-3 text-sm text-coral">{error}</p> : null}
-            <button disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-marine px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-marine/90 disabled:opacity-60">
+            <button disabled={loading || !consent} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-marine px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-marine/90 disabled:cursor-not-allowed disabled:opacity-60">
               {loading ? "준비 중..." : "학습 시작"} <ArrowRight size={18} />
             </button>
           </form>
         )}
 
         <p className="mt-7 border-t border-slate-200 pt-5 text-xs leading-6 text-slate-500">
-          이 도구는 수업용 학습 로그 저장을 위해 학번과 이름을 사용합니다. 실제 운영 전에는 학교 개인정보 처리 기준에 맞게 익명 ID 또는 번호로 대체할 수 있습니다.
+          이 도구는 수업 중 학습 기록 저장을 위해 학번과 이름을 사용합니다. 수업 목적에 필요한 범위에서만 확인하며, 교사용 화면에서 학생별 학습 상황을 살펴볼 수 있습니다.
         </p>
       </section>
     </main>
