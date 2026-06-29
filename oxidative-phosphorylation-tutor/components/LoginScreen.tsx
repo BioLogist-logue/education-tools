@@ -75,7 +75,7 @@ export function LoginScreen({ onReady }: { onReady: (payload: ReadyPayload) => v
       <section className="w-full max-w-xl rounded-lg border border-white/80 bg-white/88 p-8 shadow-soft backdrop-blur">
         <div className="mb-8">
           <p className="text-sm font-semibold text-marine">고등학교 생명과학 탐구</p>
-          <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">AI 튜터와 함께하는 산화적 인산화</h1>
+          <h1 className="mt-2 text-3xl font-bold text-ink sm:text-4xl">🤖AI 튜터와 함께하는 산화적 인산화</h1>
           <p className="mt-3 text-base leading-7 text-slate-600"><ChemicalText text="전자 전달, H+ 기울기, ATP 생성의 관계를 직접 조작하고 설명해보세요." /></p>
         </div>
 
