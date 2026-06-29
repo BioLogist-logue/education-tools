@@ -69,7 +69,7 @@ export function SimulatorPanel({ state, prediction, isSaving, onStateChange, onP
 
         <label className="block">
           <span className="text-sm font-semibold text-slate-700">예측하기</span>
-          <textarea value={prediction} onChange={(event) => onPredictionChange(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-3 text-sm leading-6 outline-none ring-mint/30 focus:ring-4" placeholder="예: O2가 없으면 전자 전달이 멈추고 ATP 생성도 줄어들 것 같다." />
+          <textarea value={prediction} onChange={(event) => onPredictionChange(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-3 text-sm leading-6 outline-none ring-mint/30 focus:ring-4" placeholder="예: 산소가 없으면 전자 전달이 멈추고 ATP 생성도 줄어들 것 같다." />
         </label>
 
         <button onClick={onRun} disabled={isSaving} className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-marine px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-marine/90 disabled:opacity-60">
