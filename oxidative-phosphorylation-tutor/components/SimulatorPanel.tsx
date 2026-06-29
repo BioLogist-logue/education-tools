@@ -37,7 +37,7 @@ export function SimulatorPanel({ state, prediction, isSaving, onStateChange, onP
         <span className="rounded-md bg-mint/12 p-2 text-mint"><SlidersHorizontal size={20} /></span>
         <div>
           <h2 className="text-lg font-bold text-ink">조건 조작</h2>
-          <p className="text-sm text-slate-500">바탕질의 기질과 처리 조건을 바꾼 뒤 예측해보세요.</p>
+          <p className="text-sm text-slate-500">처리 조건을 바꾼 뒤 ATP 생성여부/생성량 등을 자유롭게 예측해보세요.</p>
         </div>
       </div>
 
