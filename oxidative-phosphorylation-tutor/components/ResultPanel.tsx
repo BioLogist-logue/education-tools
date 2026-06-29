@@ -20,7 +20,7 @@ export function ResultPanel({ result, state }: { result: SimulationResult; state
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-ink">결과</h2>
-          <p className="text-sm text-slate-500">교과서 기준 ATP 환산값을 바탕으로 조건별 감소를 반영했습니다.</p>
+          <p className="text-sm text-slate-500">좌측 조작 패널의 변경값을 반영한 결과입니다.</p>
         </div>
         <div className="rounded-md bg-amber/15 px-3 py-2 text-sm font-bold text-amber"><ChemicalText text={result.atpLabel} /></div>
       </div>
