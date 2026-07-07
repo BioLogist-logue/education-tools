@@ -533,7 +533,7 @@ button {
   top: auto;
   display: grid;
   gap: 6px;
-  width: clamp(80px, 8.5vw, 118px);
+  width: clamp(72px, 8.5vw, 118px);
   background: transparent;
   border: 0;
   padding: 0;
