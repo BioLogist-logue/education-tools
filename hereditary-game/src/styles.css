@@ -533,7 +533,7 @@ button {
   top: auto;
   display: grid;
   gap: 6px;
-  width: clamp(72px, 8.5vw, 118px);
+  width: clamp(80px, 8.5vw, 118px);
   background: transparent;
   border: 0;
   padding: 0;
@@ -809,7 +809,7 @@ button {
     right: 3%;
     bottom: 4%;
     grid-template-columns: 1fr;
-    width: 100px;
+    width: 76px;
     gap: 4px;
     background: transparent;
     border: 0;
