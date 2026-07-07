@@ -1,0 +1,988 @@
+:root {
+  color: #f4dfad;
+  background: #160f0b;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(124, 88, 41, 0.28), transparent 32rem),
+    linear-gradient(135deg, #17100c 0%, #2a1911 55%, #110c09 100%);
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.gameLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 168px;
+  gap: 20px;
+  align-items: start;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.mainStage {
+  position: relative;
+  min-width: 0;
+}
+
+.sceneShell {
+  width: 100%;
+}
+
+.sceneFrame {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(226, 181, 86, 0.7);
+  background: #080605;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.sceneImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hotspot {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #fff4c8;
+  cursor: pointer;
+  outline: none;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.hotspot:hover,
+.hotspot:focus-visible {
+  background: rgba(255, 210, 90, 0.18);
+  border-color: rgba(255, 218, 119, 0.45);
+  box-shadow: 0 0 22px rgba(255, 209, 89, 0.45);
+}
+
+.hotspot[data-debug="true"] {
+  background: rgba(255, 210, 90, 0.28);
+  border-color: rgba(255, 233, 153, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(56, 28, 0, 0.55);
+}
+
+.hotspotLabel {
+  max-width: 100%;
+  padding: 3px 6px;
+  background: rgba(35, 19, 8, 0.82);
+  color: #ffe7a6;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.sidebar {
+  display: grid;
+  gap: 12px;
+  position: sticky;
+  top: 24px;
+}
+
+.imageButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid rgba(226, 181, 86, 0.7);
+  background: #1d120c;
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.imageButton:hover,
+.imageButton:focus-visible {
+  filter: brightness(1.08);
+  transform: scale(1.03);
+  box-shadow: 0 0 18px rgba(255, 210, 90, 0.24);
+}
+
+.imageButton img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.backButton {
+  margin: 0 0 12px;
+  padding: 10px 16px;
+  border: 1px solid rgba(226, 181, 86, 0.8);
+  background: #23140d;
+  color: #f7df9d;
+  cursor: pointer;
+}
+
+.backButton:hover,
+.backButton:focus-visible {
+  background: #332016;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 3, 2, 0.76);
+}
+
+.modalPanel {
+  position: relative;
+  width: min(92vw, 880px);
+  max-height: 92vh;
+  border: 2px solid rgba(226, 181, 86, 0.78);
+  background: #0c0806;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.64);
+}
+
+.modalImage {
+  display: block;
+  width: 100%;
+  max-height: 92vh;
+  object-fit: contain;
+}
+
+.modalClose {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(226, 181, 86, 0.8);
+  background: rgba(24, 14, 8, 0.9);
+  color: #ffe3a1;
+  cursor: pointer;
+}
+
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.modalOverlay > * {
+  pointer-events: auto;
+}
+
+@media (max-width: 780px) {
+  .app {
+    padding: 12px;
+    padding-bottom: 112px;
+  }
+
+  .gameLayout {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+    background: rgba(16, 10, 7, 0.94);
+    border-top: 1px solid rgba(226, 181, 86, 0.45);
+  }
+
+  .modalBackdrop {
+    padding: 12px;
+  }
+}
+
+
+.sceneOverlay {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(226, 181, 86, 0.78);
+  background: rgba(20, 12, 7, 0.86);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.46);
+}
+
+.safeLockOverlay {
+  left: 32%;
+  top: 57%;
+  width: min(36%, 340px);
+}
+
+.fieldLabel {
+  color: #f7df9d;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.answerInput {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid rgba(226, 181, 86, 0.78);
+  background: #120b08;
+  color: #ffe9af;
+  outline: none;
+}
+
+.answerInput:focus {
+  border-color: #ffe39a;
+  box-shadow: 0 0 0 3px rgba(255, 210, 90, 0.18);
+}
+
+.genePad {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.smallToolButton,
+.submitButton,
+.toolButton {
+  min-height: 36px;
+  border: 1px solid rgba(226, 181, 86, 0.72);
+  background: #24150d;
+  color: #ffe4a3;
+  cursor: pointer;
+}
+
+.smallToolButton:hover,
+.smallToolButton:focus-visible,
+.submitButton:hover,
+.submitButton:focus-visible,
+.toolButton:hover,
+.toolButton:focus-visible,
+.toolButton[data-selected="true"] {
+  background: #3a2515;
+  box-shadow: 0 0 16px rgba(255, 210, 90, 0.2);
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.oathStartButton {
+  position: absolute;
+  left: 33%;
+  top: 74%;
+  width: 34%;
+  height: 11%;
+  border: 1px solid rgba(255, 226, 142, 0.08);
+  background: rgba(255, 210, 90, 0.01);
+  color: transparent;
+  cursor: pointer;
+}
+
+.oathStartButton:hover,
+.oathStartButton:focus-visible {
+  background: rgba(255, 210, 90, 0.16);
+  border-color: rgba(255, 226, 142, 0.42);
+  box-shadow: 0 0 24px rgba(255, 210, 90, 0.36);
+}
+
+.modalForm {
+  position: absolute;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(226, 181, 86, 0.78);
+  background: rgba(20, 12, 7, 0.88);
+}
+
+.accusationForm {
+  left: 31%;
+  top: 61%;
+  width: 38%;
+}
+
+.certificatePanel {
+  position: relative;
+  width: min(92vw, 880px);
+  max-height: 92vh;
+  border: 2px solid rgba(226, 181, 86, 0.78);
+  background: #0c0806;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.64);
+  overflow: auto;
+}
+
+.certificateCapture {
+  position: relative;
+  background: #0c0806;
+}
+
+.certificateName {
+  position: absolute;
+  left: 24%;
+  right: 24%;
+  top: 56%;
+  color: #2b1608;
+  font-size: clamp(22px, 4vw, 46px);
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.certificateControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(16, 10, 7, 0.96);
+  border-top: 1px solid rgba(226, 181, 86, 0.45);
+}
+
+.pedigreeToolbar {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 3%;
+  z-index: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border: 1px solid rgba(226, 181, 86, 0.72);
+  background: rgba(16, 10, 7, 0.86);
+}
+
+.toolGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.toolButton {
+  min-width: 62px;
+  padding: 0 10px;
+}
+
+.pedigreePerson {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  background: rgba(255, 210, 90, 0.01);
+  cursor: pointer;
+}
+
+.pedigreePerson:hover,
+.pedigreePerson:focus-visible {
+  background: rgba(255, 210, 90, 0.18);
+  border-color: rgba(255, 218, 119, 0.45);
+  box-shadow: 0 0 18px rgba(255, 209, 89, 0.42);
+}
+
+.pedigreePerson[data-debug="true"] {
+  background: rgba(255, 210, 90, 0.22);
+  border-color: rgba(255, 233, 153, 0.9);
+}
+
+.personDebugLabel {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 5px;
+  background: rgba(35, 19, 8, 0.88);
+  color: #ffe7a6;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.pedigreeBadge {
+  position: absolute;
+  min-width: 42px;
+  padding: 2px 5px;
+  border: 1px solid rgba(226, 181, 86, 0.86);
+  background: rgba(23, 13, 8, 0.92);
+  color: #ffe9af;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.phenotypeBadge {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.genotypeBadge {
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 780px) {
+  .safeLockOverlay,
+  .accusationForm {
+    left: 8%;
+    top: 56%;
+    width: 84%;
+  }
+
+  .genePad {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .certificateControls {
+    grid-template-columns: 1fr;
+  }
+
+  .pedigreeToolbar {
+    position: static;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .toolButton {
+    min-width: 52px;
+  }
+
+  .pedigreeBadge {
+    font-size: 10px;
+    min-width: 34px;
+  }
+}
+
+
+/* Interaction pass: image-native controls */
+.app {
+  padding: 12px;
+  overflow: auto;
+}
+
+.gameLayout {
+  position: relative;
+  display: block;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+}
+
+.mainStage {
+  width: 100%;
+}
+
+.sceneFrame {
+  border: 0;
+  box-shadow: none;
+}
+
+.sceneImage {
+  width: 100%;
+  max-height: calc(100vh - 24px);
+  object-fit: contain;
+}
+
+.backButton {
+  position: absolute;
+  z-index: 8;
+  top: 14px;
+  left: 14px;
+  margin: 0;
+  border-color: rgba(226, 181, 86, 0.72);
+  background: rgba(24, 14, 8, 0.82);
+}
+
+.sidebar {
+  position: absolute;
+  z-index: 6;
+  right: 10.5%;
+  bottom: 4.5%;
+  top: auto;
+  display: grid;
+  gap: 6px;
+  width: clamp(72px, 8.5vw, 118px);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.imageButton {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.imageButton:hover,
+.imageButton:focus-visible {
+  filter: brightness(1.12);
+  transform: scale(1.035);
+  box-shadow: none;
+}
+
+.modalPanel {
+  width: min(94vw, 1180px);
+  border: 0;
+  background: transparent;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.64);
+}
+
+.modalImage {
+  max-height: 94vh;
+}
+
+.oathStartButton {
+  left: 60.7%;
+  top: 76.6%;
+  width: 31.2%;
+  height: 15.8%;
+  border: 0;
+  background: rgba(255, 210, 90, 0.001);
+  color: transparent;
+}
+
+.oathStartButton:hover,
+.oathStartButton:focus-visible {
+  background: rgba(255, 210, 90, 0.12);
+  border: 1px solid rgba(255, 226, 142, 0.32);
+  box-shadow: 0 0 24px rgba(255, 210, 90, 0.32);
+}
+
+.imageHotButton {
+  position: absolute;
+  z-index: 5;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 210, 90, 0.001);
+  color: #ffe9af;
+  cursor: pointer;
+}
+
+.imageHotButton:hover,
+.imageHotButton:focus-visible {
+  background: rgba(255, 210, 90, 0.15);
+  box-shadow: 0 0 22px rgba(255, 210, 90, 0.38);
+}
+
+.imageHotButton[data-debug="true"] {
+  background: rgba(255, 210, 90, 0.26);
+  border: 1px solid rgba(255, 233, 153, 0.9);
+}
+
+.safeLockLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.safeCodeReadout {
+  position: absolute;
+  left: 44.2%;
+  top: 38.4%;
+  min-width: 12%;
+  padding: 2px 6px;
+  color: rgba(58, 31, 10, 0.82);
+  font-size: clamp(14px, 1.8vw, 28px);
+  letter-spacing: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+.safeGeneButton {
+  border-radius: 999px;
+}
+
+.accusationOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.accusationDigit {
+  position: absolute;
+  z-index: 5;
+  width: 19.4%;
+  height: 14.4%;
+  border: 0;
+  background: transparent;
+  color: #2a1608;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 7vw, 96px);
+  line-height: 1;
+  text-align: center;
+  outline: none;
+  pointer-events: auto;
+}
+
+.accusationDigit:focus {
+  background: rgba(255, 226, 142, 0.12);
+  box-shadow: inset 0 0 0 2px rgba(81, 42, 14, 0.28);
+}
+
+.generationDigit {
+  left: 25.9%;
+  top: 52.5%;
+}
+
+.memberDigit {
+  left: 55.7%;
+  top: 51.5%;
+}
+
+.accusationSubmit {
+  position: absolute;
+  z-index: 5;
+  left: 39%;
+  top: 75%;
+  width: 22%;
+  height: 10%;
+  border: 0;
+  background: rgba(255, 210, 90, 0.001);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.accusationSubmit:hover,
+.accusationSubmit:focus-visible {
+  background: rgba(255, 210, 90, 0.12);
+  box-shadow: 0 0 22px rgba(255, 210, 90, 0.28);
+}
+
+.certificatePanel {
+  width: min(94vw, 1180px);
+  border: 0;
+  background: transparent;
+}
+
+.certificateName {
+  left: 35%;
+  right: 35%;
+  top: 58.2%;
+  color: #3b210f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3.2vw, 48px);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(255, 226, 142, 0.28);
+}
+
+.certificateControls {
+  grid-template-columns: auto minmax(160px, 1fr) auto auto;
+  align-items: center;
+}
+
+.certificateLabel {
+  color: #f7df9d;
+  white-space: nowrap;
+}
+
+.pedigreeFrame {
+  overflow: visible;
+}
+
+.pedigreePerson[data-selected="true"] {
+  background: rgba(255, 210, 90, 0.17);
+  box-shadow: 0 0 20px rgba(255, 210, 90, 0.48);
+}
+
+.phenotypeShape {
+  position: absolute;
+  inset: 7%;
+  z-index: 1;
+  border: 2px solid rgba(73, 44, 20, 0.8);
+  pointer-events: none;
+}
+
+.phenotypeShape.female {
+  border-radius: 999px;
+}
+
+.phenotypeShape.male {
+  border-radius: 4px;
+}
+
+.phenotypeShape.trait {
+  background: rgba(177, 36, 22, 0.92);
+}
+
+.phenotypeShape.normal {
+  background: rgba(244, 224, 188, 0.92);
+}
+
+.genotypeBadge {
+  z-index: 2;
+  bottom: -34%;
+  min-width: 52px;
+  background: rgba(23, 13, 8, 0.88);
+  font-size: clamp(10px, 0.8vw, 14px);
+}
+
+.phenotypeTool {
+  top: 79.5%;
+  width: 6.5%;
+  height: 11.5%;
+  border-radius: 999px;
+}
+
+.traitTool {
+  left: 64.3%;
+}
+
+.normalTool {
+  left: 71.9%;
+}
+
+.genotypeTool {
+  top: 75.1%;
+  width: 4.4%;
+  height: 9.8%;
+  border-radius: 999px;
+}
+
+.genotypeToolA {
+  left: 39.8%;
+}
+
+.genotypeToola {
+  left: 44.5%;
+}
+
+.genotypeToolX {
+  left: 49.4%;
+}
+
+.genotypeToolY {
+  left: 54.0%;
+}
+
+@media (max-width: 780px) {
+  .app {
+    padding: 0;
+    padding-bottom: 0;
+    overflow: auto;
+    background: #100a07;
+  }
+
+  .gameLayout {
+    width: 1000px;
+    max-width: none;
+  }
+
+  .sceneImage {
+    max-height: none;
+  }
+
+  .sidebar {
+    position: absolute;
+    left: auto;
+    right: 3%;
+    bottom: 4%;
+    grid-template-columns: 1fr;
+    width: 76px;
+    gap: 4px;
+    background: transparent;
+    border: 0;
+  }
+
+  .modalPanel,
+  .certificatePanel {
+    width: 96vw;
+  }
+
+  .certificateControls {
+    grid-template-columns: 1fr;
+  }
+
+  .accusationDigit {
+    font-size: 44px;
+  }
+}
+
+
+/* Final tuning pass */
+.sidebar {
+  width: clamp(104px, 11.5vw, 170px);
+  gap: 8px;
+}
+
+@media (max-width: 780px) {
+  .sidebar {
+    width: 104px;
+    gap: 6px;
+  }
+}
+
+.hotspot,
+.hotspot:hover,
+.hotspot:focus-visible,
+.imageHotButton,
+.imageHotButton:hover,
+.imageHotButton:focus-visible,
+.oathStartButton,
+.oathStartButton:hover,
+.oathStartButton:focus-visible,
+.accusationSubmit,
+.accusationSubmit:hover,
+.accusationSubmit:focus-visible {
+  border: 0;
+  outline: none;
+}
+
+.hotspot:hover,
+.hotspot:focus-visible,
+.imageHotButton:hover,
+.imageHotButton:focus-visible,
+.oathStartButton:hover,
+.oathStartButton:focus-visible,
+.accusationSubmit:hover,
+.accusationSubmit:focus-visible {
+  background: rgba(255, 210, 90, 0.08);
+  box-shadow: 0 0 16px rgba(255, 210, 90, 0.22);
+}
+
+.hotspot[data-debug="true"],
+.imageHotButton[data-debug="true"] {
+  border: 1px solid rgba(255, 233, 153, 0.9);
+}
+
+.certificateName {
+  left: 52.8%;
+  right: 28.0%;
+  top: 71.2%;
+  color: #3a2110;
+  font-size: clamp(14px, 2vw, 25px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.phenotypeShape {
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: min(82%, 42px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  transform: translate(-50%, -50%);
+}
+
+.phenotypeShape.male {
+  border-radius: 3px;
+}
+
+.phenotypeShape.female {
+  border-radius: 50%;
+}
+
+.genotypeBadge {
+  left: -58%;
+  right: auto;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-100%, -50%);
+  min-width: 42px;
+  max-width: 62px;
+  padding: 2px 4px;
+  font-size: clamp(9px, 0.72vw, 13px);
+  white-space: nowrap;
+}
+
+.pedigreePerson:hover,
+.pedigreePerson:focus-visible {
+  border-color: transparent;
+}
+
+
+/* Keep genotype labels close to each pedigree person */
+.genotypeBadge {
+  left: -8%;
+  transform: translate(-100%, -50%);
+  margin-right: 4px;
+}
+
+
+/* EduTech Hub shortcut */
+.hubButton {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid rgba(226, 181, 86, 0.76);
+  background: rgba(24, 14, 8, 0.86);
+  color: #ffe4a3;
+  font-size: 14px;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+}
+
+.hubButton:hover,
+.hubButton:focus-visible {
+  background: rgba(51, 32, 22, 0.92);
+  box-shadow: 0 0 18px rgba(255, 210, 90, 0.22);
+}
+
+.backButton {
+  top: 62px;
+}
+
+@media (max-width: 780px) {
+  .hubButton {
+    top: 8px;
+    left: 8px;
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .backButton {
+    top: 50px;
+  }
+}
+
+
+/* Hub button only appears on the manor scene; place it farther right. */
+.hubButton {
+  left: 152px;
+}
+
+@media (max-width: 780px) {
+  .hubButton {
+    left: 72px;
+  }
+}
