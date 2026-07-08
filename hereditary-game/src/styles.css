@@ -839,7 +839,7 @@ button {
 @media (max-width: 780px) {
   .sidebar {
     width: 130px;
-    gap: 6px;
+    gap: 4.5%;
   }
 }
 
@@ -1119,3 +1119,32 @@ button {
 .modalBackdrop {
   overflow: auto;
 }
+
+/* Keep manor side buttons locked to the manor image coordinate plane. */
+.sceneFrame-manor .sidebar {
+  position: absolute;
+  z-index: 6;
+  right: 10.6%;
+  bottom: 4.5%;
+  top: auto;
+  left: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 12.5%;
+  min-width: 0;
+  max-width: none;
+  gap: 4.5%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 780px) {
+  .sceneFrame-manor .sidebar {
+    right: 3%;
+    bottom: 4%;
+    width: 13%;
+    gap: 4.5%;
+  }
+}
+
