@@ -1148,3 +1148,48 @@ button {
   }
 }
 
+
+/* Final manor overlay anchors: keep hub and side buttons in the manor image coordinate plane. */
+.sceneFrame-manor .hubButton {
+  position: absolute;
+  top: 3.2%;
+  left: 3.2%;
+  z-index: 7;
+  min-height: 0;
+  padding: 8px 13px;
+  font-size: 14px;
+}
+
+.sceneFrame-manor .sidebar {
+  position: absolute;
+  z-index: 6;
+  right: 4.6%;
+  bottom: 7.5%;
+  top: auto;
+  left: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 12.5%;
+  min-width: 0;
+  max-width: none;
+  gap: 4.5%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+@media (max-width: 780px) {
+  .sceneFrame-manor .hubButton {
+    top: 3.2%;
+    left: 3.2%;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  .sceneFrame-manor .sidebar {
+    right: 4.6%;
+    bottom: 7.5%;
+    width: 12.5%;
+    gap: 4.5%;
+  }
+}

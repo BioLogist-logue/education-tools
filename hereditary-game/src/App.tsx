@@ -133,11 +133,7 @@ export default function App() {
 
   return (
     <main className="app">
-      {currentScene === "manor" && (
-        <a className="hubButton" href="https://biologue-tools.vercel.app/" target="_blank" rel="noreferrer">
-          {hubLabel}
-        </a>
-      )}
+
       <div className="gameLayout">
         <div className="mainStage">
           {showBackToManor && (
@@ -163,11 +159,16 @@ export default function App() {
               onHotspotActivate={handleHotspotActivate}
             >
               {currentScene === "manor" && (
-                <Sidebar
-                  onAccusation={() => setActivePopup("accusation")}
-                  onPedigree={() => setCurrentScene("pedigree")}
-                  onWatsonHint={() => setActivePopup("watsonHint")}
-                />
+                <>
+                  <a className="hubButton" href="https://biologue-tools.vercel.app/" target="_blank" rel="noreferrer">
+                    {hubLabel}
+                  </a>
+                  <Sidebar
+                    onAccusation={() => setActivePopup("accusation")}
+                    onPedigree={() => setCurrentScene("pedigree")}
+                    onWatsonHint={() => setActivePopup("watsonHint")}
+                  />
+                </>
               )}
               {currentScene === "safeLock" && (
                 <SafeLockScene value={safeInput} onPressGene={handleSafeGenePress} debugHotspots={debugHotspots} />
@@ -206,5 +207,6 @@ export default function App() {
     </main>
   );
 }
+
 
 
