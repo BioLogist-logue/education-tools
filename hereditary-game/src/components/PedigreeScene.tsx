@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+﻿import type { CSSProperties } from "react";
 import { sceneAssets } from "../data/assets";
 import {
   genotypeTools,
@@ -25,9 +25,13 @@ export function PedigreeScene({
   onApplyPhenotype,
   onPressGenotype,
 }: PedigreeSceneProps) {
+  const frameStyle = {
+    "--scene-aspect": "1999 / 1125",
+  } as CSSProperties;
+
   return (
     <section className="sceneShell" aria-label="pedigree scene">
-      <div className="sceneFrame pedigreeFrame">
+      <div className="sceneFrame pedigreeFrame" style={frameStyle}>
         <img className="sceneImage" src={sceneAssets.pedigree} alt="" />
         {pedigreePeople.map((person) => {
           const style: CSSProperties = {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { popupAssets } from "../data/assets";
 import { downloadCertificate } from "../utils/downloadCertificate";
 
@@ -74,3 +74,4 @@ export function CertificateModal({ onClose }: CertificateModalProps) {
     </div>
   );
 }
+

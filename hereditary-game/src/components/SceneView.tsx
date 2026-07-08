@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+﻿import type { CSSProperties, ReactNode } from "react";
+import { sceneAspectRatios } from "../data/assets";
 import type { HotspotDefinition, SceneId } from "../types";
 import { Hotspot } from "./Hotspot";
 
@@ -19,9 +20,13 @@ export function SceneView({
   onHotspotActivate,
   children,
 }: SceneViewProps) {
+  const frameStyle = {
+    "--scene-aspect": sceneAspectRatios[sceneId],
+  } as CSSProperties;
+
   return (
     <section className="sceneShell" aria-label={sceneId + " scene"}>
-      <div className="sceneFrame">
+      <div className={"sceneFrame sceneFrame-" + sceneId} style={frameStyle}>
         <img
           className="sceneImage"
           src={imageSrc}

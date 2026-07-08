@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+﻿import type { CSSProperties, ReactNode } from "react";
 import { useEffect } from "react";
 
 type ModalProps = {
@@ -7,6 +7,7 @@ type ModalProps = {
   onClose: () => void;
   closeOnBackdrop?: boolean;
   showCloseButton?: boolean;
+  aspectRatio?: string;
   children?: ReactNode;
 };
 
@@ -16,6 +17,7 @@ export function Modal({
   onClose,
   closeOnBackdrop = true,
   showCloseButton = true,
+  aspectRatio = "1672 / 941",
   children,
 }: ModalProps) {
   useEffect(() => {
@@ -29,6 +31,10 @@ export function Modal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const panelStyle = {
+    "--modal-aspect": aspectRatio,
+  } as CSSProperties;
+
   return (
     <div
       className="modalBackdrop"
@@ -41,6 +47,7 @@ export function Modal({
     >
       <div
         className="modalPanel"
+        style={panelStyle}
         role="dialog"
         aria-modal="true"
         aria-label={title}
