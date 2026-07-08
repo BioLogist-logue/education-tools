@@ -162,19 +162,20 @@ export default function App() {
               debugHotspots={debugHotspots}
               onHotspotActivate={handleHotspotActivate}
             >
+              {currentScene === "manor" && (
+                <Sidebar
+                  onAccusation={() => setActivePopup("accusation")}
+                  onPedigree={() => setCurrentScene("pedigree")}
+                  onWatsonHint={() => setActivePopup("watsonHint")}
+                />
+              )}
               {currentScene === "safeLock" && (
                 <SafeLockScene value={safeInput} onPressGene={handleSafeGenePress} debugHotspots={debugHotspots} />
               )}
             </SceneView>
           )}
         </div>
-        {currentScene === "manor" && (
-          <Sidebar
-            onAccusation={() => setActivePopup("accusation")}
-            onPedigree={() => setCurrentScene("pedigree")}
-            onWatsonHint={() => setActivePopup("watsonHint")}
-          />
-        )}
+
       </div>
 
       {activePopup === "certificate" && <CertificateModal onClose={handleClosePopup} />}
@@ -205,4 +206,5 @@ export default function App() {
     </main>
   );
 }
+
 
