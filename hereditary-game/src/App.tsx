@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+﻿import { useCallback, useMemo, useState } from "react";
 import { AccusationForm } from "./components/AccusationForm";
 import { CertificateModal } from "./components/CertificateModal";
 import { Modal } from "./components/Modal";
@@ -7,10 +7,14 @@ import { SafeLockScene } from "./components/SafeLockScene";
 import { SceneView } from "./components/SceneView";
 import { Sidebar } from "./components/Sidebar";
 import { accusationAnswer, safeAnswers } from "./data/answers";
-import { popupAssets, sceneAssets } from "./data/assets";
+import { popupAspectRatios, popupAssets, sceneAssets } from "./data/assets";
 import { hotspotsByScene } from "./data/hotspots";
 import type { GenotypeTool, PedigreeAnswer, PhenotypeTool } from "./data/pedigreePositions";
 import type { HotspotDefinition, PopupId, SceneId } from "./types";
+
+const hubLabel = "\uC5D0\uB4C0\uD14C\uD06C \uD5C8\uBE0C \uBC14\uB85C\uAC00\uAE30";
+const backLabel = "\uBA54\uC778\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30";
+const oathButtonLabel = "\uBE44\uBC00\uC744 \uBC1D\uD600\uB0B4\uB77C";
 
 const popupTitles: Record<PopupId, string> = {
   oath: "Oath",
@@ -131,14 +135,14 @@ export default function App() {
     <main className="app">
       {currentScene === "manor" && (
         <a className="hubButton" href="https://biologue-tools.vercel.app/" target="_blank" rel="noreferrer">
-          에듀테크 허브 바로가기
+          {hubLabel}
         </a>
       )}
       <div className="gameLayout">
         <div className="mainStage">
           {showBackToManor && (
             <button className="backButton" type="button" onClick={() => setCurrentScene("manor")}>
-              메인으로 돌아가기
+              {backLabel}
             </button>
           )}
           {currentScene === "pedigree" ? (
@@ -164,7 +168,7 @@ export default function App() {
             </SceneView>
           )}
         </div>
-        {currentScene !== "pedigree" && (
+        {currentScene === "manor" && (
           <Sidebar
             onAccusation={() => setActivePopup("accusation")}
             onPedigree={() => setCurrentScene("pedigree")}
@@ -182,9 +186,10 @@ export default function App() {
           onClose={handleClosePopup}
           closeOnBackdrop={activePopup !== "oath"}
           showCloseButton={activePopup !== "oath"}
+          aspectRatio={popupAspectRatios[activePopup]}
         >
           {activePopup === "oath" && (
-            <button className="oathStartButton" type="button" onClick={() => setActivePopup(null)} aria-label="비밀을 밝혀내라" />
+            <button className="oathStartButton" type="button" onClick={() => setActivePopup(null)} aria-label={oathButtonLabel} />
           )}
           {activePopup === "accusation" && (
             <AccusationForm
@@ -200,3 +205,4 @@ export default function App() {
     </main>
   );
 }
+
