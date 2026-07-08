@@ -31,6 +31,9 @@ export function Modal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  const isSquareModal =
+    aspectRatio.replace(/\s/g, "") === "1125/1125" ||
+    aspectRatio.replace(/\s/g, "") === "2475/2475";
   const panelStyle = {
     "--modal-aspect": aspectRatio,
   } as CSSProperties;
@@ -46,7 +49,7 @@ export function Modal({
       }}
     >
       <div
-        className="modalPanel"
+        className={"modalPanel" + (isSquareModal ? " modalPanelSquare" : "")}
         style={panelStyle}
         role="dialog"
         aria-modal="true"
@@ -71,3 +74,5 @@ export function Modal({
     </div>
   );
 }
+
+
