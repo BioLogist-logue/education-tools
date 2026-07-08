@@ -1,4 +1,4 @@
-import type { PopupId, SceneId } from "../types";
+﻿import type { PopupId, SceneId } from "../types";
 
 const png = (fileName: string) => "/assets/" + fileName;
 
@@ -10,6 +10,16 @@ export const sceneAssets: Record<SceneId, string> = {
   familyHead: png("family_head_room.png"),
   charles: png("charles_room.png"),
   pedigree: png("pedigree_puzzle.png"),
+};
+
+export const sceneAspectRatios: Record<SceneId, string> = {
+  manor: "2816 / 1536",
+  laboratory: "1672 / 941",
+  safeLock: "1672 / 941",
+  study: "1672 / 941",
+  familyHead: "1672 / 941",
+  charles: "1672 / 941",
+  pedigree: "1999 / 1125",
 };
 
 export const popupAssets: Record<PopupId, string> = {
@@ -24,6 +34,18 @@ export const popupAssets: Record<PopupId, string> = {
   error: png("error_alert.png"),
 };
 
+
+export const popupAspectRatios: Record<PopupId, string> = {
+  oath: "1672 / 941",
+  evidenceBox: "1672 / 941",
+  safeClue: "1672 / 941",
+  portraitVictoria: "1125 / 1125",
+  codedNote: "1672 / 941",
+  accusation: "1672 / 941",
+  certificate: "1672 / 941",
+  watsonHint: "2475 / 2475",
+  error: "1448 / 1086",
+};
 export const sidebarAssets = {
   accusation: png("accusation_button.png"),
   pedigree: png("pedigree_button.png"),
@@ -51,3 +73,4 @@ export const expectedAssetFiles = [
   "pedigree_button.png",
   "watson_button.png",
 ] as const;
+
