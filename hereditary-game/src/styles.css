@@ -1110,3 +1110,12 @@ button {
     max-width: none;
   }
 }
+
+/* Square popups such as Watson hint and Victoria portrait must fit viewport height. */
+.modalPanelSquare {
+  width: min(94vw, 86vh, 860px);
+}
+
+.modalBackdrop {
+  overflow: auto;
+}
