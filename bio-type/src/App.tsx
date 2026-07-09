@@ -209,6 +209,7 @@ export default function App() {
 
   const [realRarity, setRealRarity] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);    // DB 연동 총 참여자 수
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   // ✨ MBTI 유형 풀이 함수 추가 (머글 번역기 가동!)
   const explainType = (typeStr: ResultKey) => {
@@ -308,19 +309,23 @@ export default function App() {
   };
 
   const handleAnswer = (type: ScoreKey, score: number) => {
-    setScores(prev => ({ ...prev, [type]: prev[type] + score }));
+    const nextScores = { ...scores, [type]: scores[type] + score };
+    setScores(nextScores);
     
     if (currentIndex < testQuestions.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      calculateResult();
+      calculateResult(nextScores);
     }
   };
 
   // ✨ Supabase에 결과 저장하고 실시간 통계 불러오는 함수
   const updateAndFetchStats = async (typeId: ResultKey) => {
+    setStatsError(null);
+
     if (!isSupabaseReady) {
       console.warn('Supabase 환경변수가 없어 결과 통계를 저장하지 않았습니다.');
+      setStatsError('통계 저장 환경변수가 연결되지 않았습니다.');
       return;
     }
     
@@ -331,6 +336,7 @@ export default function App() {
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ p_type_id: typeId })
@@ -340,6 +346,9 @@ export default function App() {
         const message = await incrementResponse.text();
         throw new Error(`Supabase RPC 실패: ${incrementResponse.status} ${message}`);
       }
+
+      const incrementedCount = (await incrementResponse.json()) as number | null;
+      console.info('Supabase 통계 저장 성공', { typeId, incrementedCount });
 
       // 2. 전체 통계 데이터 불러오기
       const res = await fetch(`${SUPABASE_URL}/rest/v1/mbti_stats?select=*`, {
@@ -371,19 +380,20 @@ export default function App() {
       }
     } catch (error) {
       console.error("DB 연동 중 오류 발생! (기본 데이터로 대체합니다)", error);
+      setStatsError('통계 저장을 확인하지 못했습니다. Supabase 설정을 확인해주세요.');
     }
   };
 
-  const calculateResult = () => {
+  const calculateResult = (finalScores: ScoreMap) => {
     setStep('loading'); // 도파민 터지는 로딩 화면으로 전환
     
     setTimeout(() => {
       // 점수 비교 로직
       // 동점일 경우 기본값 설정 (띨빡이의 센스)
-      const t1 = scores.광 >= scores.호 ? '광' : '호';
-      const t2 = scores.감 >= scores.운 ? '감' : '운';
-      const t3 = scores.교 >= scores.부 ? '교' : '부';
-      const t4 = scores.우 >= scores.열 ? '우' : '열';
+      const t1 = finalScores.광 >= finalScores.호 ? '광' : '호';
+      const t2 = finalScores.감 >= finalScores.운 ? '감' : '운';
+      const t3 = finalScores.교 >= finalScores.부 ? '교' : '부';
+      const t4 = finalScores.우 >= finalScores.열 ? '우' : '열';
       
       const resultKey = `${t1}${t2}${t3}${t4}` as ResultKey;
       const finalRes: ResultKey = isResultKey(resultKey) ? resultKey : "호감교열";
@@ -589,6 +599,11 @@ export default function App() {
                 {totalCount > 0 && (
                   <div className={`mt-4 text-xs font-bold ${isLight ? 'text-gray-500' : 'text-white/60'}`}>
                     📊 현재까지 총 {totalCount.toLocaleString()}명이 테스트에 참여했어요!
+                  </div>
+                )}
+                {statsError && (
+                  <div className={`mt-4 text-xs font-bold break-keep ${isLight ? 'text-red-700' : 'text-red-100'}`}>
+                    {statsError}
                   </div>
                 )}
               </div>
