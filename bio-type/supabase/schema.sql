@@ -37,12 +37,16 @@ for select
 to anon, authenticated
 using (true);
 
-create or replace function public.increment_mbti_count(p_type_id text)
-returns void
+drop function if exists public.increment_mbti_count(text);
+
+create function public.increment_mbti_count(p_type_id text)
+returns integer
 language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  new_count integer;
 begin
   if p_type_id not in (
     '광감교우',
@@ -62,14 +66,21 @@ begin
     '호감부열',
     '호운부열'
   ) then
-    return;
+    raise exception 'Invalid bio type: %', p_type_id;
   end if;
 
   update public.mbti_stats
   set
     count = count + 1,
     updated_at = now()
-  where type_id = p_type_id;
+  where type_id = p_type_id
+  returning count into new_count;
+
+  if new_count is null then
+    raise exception 'Missing mbti_stats row for type: %', p_type_id;
+  end if;
+
+  return new_count;
 end;
 $$;
 
