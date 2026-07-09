@@ -26,6 +26,9 @@ on conflict (type_id) do nothing;
 
 alter table public.mbti_stats enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select on public.mbti_stats to anon, authenticated;
+
 drop policy if exists "mbti_stats_select_all" on public.mbti_stats;
 
 create policy "mbti_stats_select_all"
@@ -72,4 +75,3 @@ $$;
 
 revoke all on function public.increment_mbti_count(text) from public;
 grant execute on function public.increment_mbti_count(text) to anon, authenticated;
-grant select on public.mbti_stats to anon, authenticated;
