@@ -319,11 +319,14 @@ export default function App() {
 
   // ✨ Supabase에 결과 저장하고 실시간 통계 불러오는 함수
   const updateAndFetchStats = async (typeId: ResultKey) => {
-    if (!isSupabaseReady) return; // 환경변수 없으면 조용히 패스 (미리보기 환경용)
+    if (!isSupabaseReady) {
+      console.warn('Supabase 환경변수가 없어 결과 통계를 저장하지 않았습니다.');
+      return;
+    }
     
     try {
       // 1. 내 결과 DB에 +1 카운트 추가 (미리 만들어둔 RPC 함수 호출)
-      await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_mbti_count`, {
+      const incrementResponse = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_mbti_count`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
@@ -333,6 +336,11 @@ export default function App() {
         body: JSON.stringify({ p_type_id: typeId })
       });
 
+      if (!incrementResponse.ok) {
+        const message = await incrementResponse.text();
+        throw new Error(`Supabase RPC 실패: ${incrementResponse.status} ${message}`);
+      }
+
       // 2. 전체 통계 데이터 불러오기
       const res = await fetch(`${SUPABASE_URL}/rest/v1/mbti_stats?select=*`, {
         headers: {
@@ -340,6 +348,12 @@ export default function App() {
           'Authorization': `Bearer ${SUPABASE_KEY}`
         }
       });
+
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(`Supabase 통계 조회 실패: ${res.status} ${message}`);
+      }
+
       const data = (await res.json()) as SupabaseStatRow[];
       
       // 3. 리얼타임 희귀도 계산
@@ -467,9 +481,12 @@ export default function App() {
           <div className="flex flex-col gap-3">
             {currentQ?.options.map((opt, idx) => (
               <button
-                key={idx}
-                onClick={() => handleAnswer(opt.type, opt.score)}
-                className="w-full bg-white hover:bg-purple-50 border-2 border-gray-100 hover:border-purple-300 text-gray-700 font-semibold py-4 px-6 rounded-2xl shadow-sm transition-all text-left active:scale-95"
+                key={`${currentQ.id}-${idx}`}
+                onClick={(event) => {
+                  event.currentTarget.blur();
+                  handleAnswer(opt.type, opt.score);
+                }}
+                className="w-full bg-white border-2 border-gray-100 md:hover:bg-purple-50 md:hover:border-purple-300 text-gray-700 font-semibold py-4 px-6 rounded-2xl shadow-sm transition-all text-left active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-300"
               >
                 {opt.text}
               </button>
@@ -611,6 +628,20 @@ export default function App() {
             >
               <Share2 size={20} /> 결과 공유하기
             </button>
+
+            <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-4 text-center shadow-sm">
+              <p className="text-sm font-bold text-orange-700 break-keep leading-snug mb-3">
+                다른 에듀테크를 더 보고 싶다면?
+              </p>
+              <a
+                href="https://biologue-tools.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-white hover:bg-orange-100 text-orange-700 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-orange-200"
+              >
+                <Home size={18} /> 에듀테크 허브로 이동
+              </a>
+            </div>
             
             <button 
               onClick={() => setStep('intro')}
@@ -655,8 +686,8 @@ export default function App() {
 
       {/* 토스트 알림 UI */}
       {showToast && (
-        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl z-50 animate-fade-in-up flex items-center gap-2 font-bold text-sm min-w-max">
-          <Sparkles size={16} className="text-yellow-400" /> {toastMsg}
+        <div className="fixed bottom-6 left-1/2 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in-up flex items-center justify-center gap-2 font-bold text-sm text-center break-keep leading-snug">
+          <Sparkles size={16} className="text-yellow-400 shrink-0" /> <span>{toastMsg}</span>
         </div>
       )}
     </div>
