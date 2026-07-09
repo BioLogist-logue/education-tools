@@ -665,7 +665,7 @@ export default function App() {
   };
 
   return (
-    <div className="font-sans antialiased text-gray-900 selection:bg-purple-200 flex flex-col min-h-screen">
+    <div className="font-sans antialiased text-gray-900 selection:bg-purple-200 flex flex-col min-h-screen overflow-x-hidden">
       <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -686,7 +686,7 @@ export default function App() {
 
       {/* 토스트 알림 UI */}
       {showToast && (
-        <div className="fixed bottom-6 left-1/2 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in-up flex items-center justify-center gap-2 font-bold text-sm text-center break-keep leading-snug">
+        <div className="fixed bottom-6 left-4 right-4 mx-auto max-w-sm bg-gray-800 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 animate-fade-in-up flex items-center justify-center gap-2 font-bold text-sm text-center break-keep leading-snug">
           <Sparkles size={16} className="text-yellow-400 shrink-0" /> <span>{toastMsg}</span>
         </div>
       )}
