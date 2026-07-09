@@ -4,6 +4,9 @@ create table if not exists public.mbti_stats (
   updated_at timestamptz not null default now()
 );
 
+alter table public.mbti_stats
+add column if not exists updated_at timestamptz not null default now();
+
 insert into public.mbti_stats (type_id, count)
 values
   ('광감교우', 0),
