@@ -2,16 +2,8 @@ import { useEffect, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { Share2, RotateCcw, ChevronRight, Activity, Zap, Sparkles, AlertCircle, Home, BookOpen, Download } from 'lucide-react';
 
-const getEnv = (key: string): string => {
-  const viteValue = import.meta.env[key];
-  if (typeof viteValue === 'string') return viteValue;
-
-  const maybeProcess = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
-  return maybeProcess?.env?.[key] ?? '';
-};
-
-const SUPABASE_URL = getEnv('VITE_SUPABASE_URL') || getEnv('REACT_APP_SUPABASE_URL') || getEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_KEY = getEnv('VITE_SUPABASE_ANON_KEY') || getEnv('REACT_APP_SUPABASE_ANON_KEY') || getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? '';
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
 const isSupabaseReady = Boolean(SUPABASE_URL && SUPABASE_KEY);
 declare global {
   interface Window {
