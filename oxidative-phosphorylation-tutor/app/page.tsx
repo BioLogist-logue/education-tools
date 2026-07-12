@@ -6,7 +6,7 @@ import { SimulatorPanel } from "@/components/SimulatorPanel";
 import { MitochondriaDiagram } from "@/components/MitochondriaDiagram";
 import { ResultPanel } from "@/components/ResultPanel";
 import { TutorChat } from "@/components/TutorChat";
-import { LearningLogPanel } from "@/components/LearningLogPanel";
+import { LearningLogPanel, type SessionSimulationLog } from "@/components/LearningLogPanel";
 import { ExternalLinks } from "@/components/ExternalLinks";
 import { SiteFooter } from "@/components/SiteFooter";
 import { calculateSimulation, defaultSimulationState } from "@/lib/simulation";
@@ -25,6 +25,8 @@ export default function Home() {
   const [state, setState] = useState<SimulationState>(defaultSimulationState);
   const [result, setResult] = useState<SimulationResult>(() => calculateSimulation(defaultSimulationState));
   const [prediction, setPrediction] = useState("");
+  const [sessionSimulationLogs, setSessionSimulationLogs] = useState<SessionSimulationLog[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [simulationRunId, setSimulationRunId] = useState(0);
 
@@ -40,6 +42,8 @@ export default function Home() {
         <LoginScreen
           onReady={(payload) => {
             setApp({ student: payload.student, session: payload.session, chats: payload.chats, offline: payload.offline });
+            setChatMessages(payload.chats ?? []);
+            setSessionSimulationLogs([]);
             if (payload.state) setState(payload.state);
             if (payload.result) setResult(payload.result);
             if (payload.prediction) setPrediction(payload.prediction);
@@ -53,7 +57,15 @@ export default function Home() {
   async function runSimulation() {
     if (!app) return;
     const nextResult = calculateSimulation(state);
+    const nextLog: SessionSimulationLog = {
+      id: crypto.randomUUID(),
+      state,
+      result: nextResult,
+      prediction,
+      created_at: new Date().toISOString()
+    };
     setResult(nextResult);
+    setSessionSimulationLogs((current) => [nextLog, ...current]);
     setSimulationRunId((current) => current + 1);
     setIsSaving(true);
     try {
@@ -69,7 +81,7 @@ export default function Home() {
         <header className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/80 bg-white/80 px-5 py-4 shadow-soft backdrop-blur">
           <div>
             <p className="text-sm font-semibold text-marine">{app.student.student_number} {app.student.student_name}</p>
-            <h1 className="text-2xl font-bold text-ink">산화적 인산화 탐구실</h1>
+            <h1 className="text-2xl font-bold text-ink">산화적 인산화 탐구</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <ExternalLinks />
@@ -82,9 +94,9 @@ export default function Home() {
           <div className="space-y-5">
             <MitochondriaDiagram state={state} result={result} runId={simulationRunId} />
             <ResultPanel result={result} state={state} />
-            <LearningLogPanel state={state} result={result} prediction={prediction} />
+            <LearningLogPanel student={app.student} sessionLogs={sessionSimulationLogs} chatMessages={chatMessages} />
           </div>
-          <TutorChat student={app.student} session={app.session} state={state} result={result} prediction={prediction} initialMessages={app.chats} />
+          <TutorChat student={app.student} session={app.session} state={state} result={result} prediction={prediction} initialMessages={app.chats} onMessagesChange={setChatMessages} />
         </div>
       </main>
       <SiteFooter />
