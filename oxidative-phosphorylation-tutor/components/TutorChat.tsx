@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Bot, MessageCircle, Send } from "lucide-react";
 import { ChemicalText } from "@/components/ChemicalText";
 import { saveChatMessage } from "@/lib/supabase/queries";
@@ -13,6 +13,7 @@ interface TutorChatProps {
   result: SimulationResult;
   prediction: string;
   initialMessages?: ChatMessage[];
+  onMessagesChange?: (messages: ChatMessage[]) => void;
 }
 
 const quickButtons = [
@@ -20,18 +21,26 @@ const quickButtons = [
   { mode: "feedback", label: "내 예측 피드백" }
 ] as const;
 
-export function TutorChat({ student, session, state, result, prediction, initialMessages = [] }: TutorChatProps) {
+export function TutorChat({ student, session, state, result, prediction, initialMessages = [], onMessagesChange }: TutorChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatHistory = useMemo(() => messages.slice(-8), [messages]);
+
+  useEffect(() => {
+    onMessagesChange?.(messages);
+  }, [messages, onMessagesChange]);
+
+  function appendMessage(row: ChatMessage) {
+    setMessages((current) => [...current, row]);
+  }
 
   async function sendMessage(mode: "hint" | "feedback" | "free_chat", explicitText?: string) {
     const text = explicitText ?? input.trim();
     if (!text && mode === "free_chat") return;
     const studentMessage = text || modeLabel(mode);
     const userRow: ChatMessage = { id: crypto.randomUUID(), role: "student", message: studentMessage, created_at: new Date().toISOString() };
-    setMessages((current) => [...current, userRow]);
+    appendMessage(userRow);
     setInput("");
     setLoading(true);
     await saveChatMessage(session.id, student.id, "student", studentMessage);
@@ -52,13 +61,18 @@ export function TutorChat({ student, session, state, result, prediction, initial
         })
       });
       const data = (await response.json()) as TutorResponse;
-      const reply = data.reply || "좋아요. 지금 조건에서 H+ 기울기, O2 소비량, ATP 생성량 중 무엇이 가장 크게 변했는지 먼저 비교해볼까요?";
+      const reply = data.reply || "좋아요. 지금 조건에서 H+ 기울기, O2 소비량, ATP 생성량 중 무엇이 가장 크게 변하는지 먼저 비교해볼까요?";
       const assistantRow: ChatMessage = { id: crypto.randomUUID(), role: "assistant", message: reply, misconception_tags: data.misconception_tags, created_at: new Date().toISOString() };
-      setMessages((current) => [...current, assistantRow]);
+      appendMessage(assistantRow);
       await saveChatMessage(session.id, student.id, "assistant", reply, data);
     } catch {
-      const fallback = "지금은 AI 응답을 받을 수 없어요. 대신 현재 결과에서 O2 소비량과 ATP 생성량이 같은 방향으로 변했는지 먼저 비교해볼까요?";
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", message: fallback, created_at: new Date().toISOString() }]);
+      const fallback: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        message: "지금은 AI 응답을 받을 수 없어요. 현재 결과에서 O2 소비량과 ATP 생성량이 같은 방향으로 변하는지 먼저 비교해볼까요?",
+        created_at: new Date().toISOString()
+      };
+      appendMessage(fallback);
     } finally {
       setLoading(false);
     }
@@ -75,7 +89,7 @@ export function TutorChat({ student, session, state, result, prediction, initial
         <span className="rounded-md bg-marine/10 p-2 text-marine"><Bot size={20} /></span>
         <div>
           <h2 className="text-lg font-bold text-ink">AI 튜터</h2>
-          <p className="text-sm text-slate-500">튜터의 질문에 답하거나 힌트를 얻어보세요.</p>
+          <p className="text-sm text-slate-500">정답을 바로 말하기보다 생각을 이끄는 질문을 합니다.</p>
         </div>
       </div>
 
