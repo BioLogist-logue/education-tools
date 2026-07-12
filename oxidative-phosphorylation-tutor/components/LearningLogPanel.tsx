@@ -383,7 +383,7 @@ function resultSummary(result: SimulationResult) {
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
-  const source = String(text || "").replace(/\s+/g, " ").trim();
+  const source = formatChemicalText(String(text || "")).replace(/\s+/g, " ").trim();
   if (!source) return [""];
   const words = source.split(" ");
   const lines: string[] = [];
@@ -494,6 +494,18 @@ function adpLabel(value: SimulationState["adp"]) {
 
 function sanitizeFileName(value: string) {
   return value.replace(/[\\/:*?"<>|]/g, "_");
+}
+
+function formatChemicalText(value: string) {
+  return value
+    .replace(/FADH2/g, "FADH₂")
+    .replace(/H2O/g, "H₂O")
+    .replace(/O2/g, "O₂")
+    .replace(/CO2/g, "CO₂")
+    .replace(/NAD\+/g, "NAD⁺")
+    .replace(/H\+/g, "H⁺")
+    .replace(/e-/g, "e⁻")
+    .replace(/e−/g, "e⁻");
 }
 
 function font(size: number, weight: "normal" | "bold") {

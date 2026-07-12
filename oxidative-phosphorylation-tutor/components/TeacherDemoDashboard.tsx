@@ -548,7 +548,7 @@ function rowXml(row: XmlRow) {
 function cellXml(cell: XmlCell) {
   const type = cell.type ?? (typeof cell.value === "number" ? "Number" : "String");
   const attrs = [cell.style ? "ss:StyleID=\"" + cell.style + "\"" : "", cell.mergeAcross ? "ss:MergeAcross=\"" + String(cell.mergeAcross) + "\"" : ""].filter(Boolean).join(" ");
-  return "<Cell" + (attrs ? " " + attrs : "") + "><Data ss:Type=\"" + type + "\">" + escapeXml(trimText(String(cell.value ?? ""), 32000)) + "</Data></Cell>";
+  return "<Cell" + (attrs ? " " + attrs : "") + "><Data ss:Type=\"" + type + "\">" + escapeXml(trimText(formatChemicalText(String(cell.value ?? "")), 32000)) + "</Data></Cell>";
 }
 
 function trimText(value: string, max: number) {
@@ -559,6 +559,18 @@ function timeValue(value: unknown) {
   if (!value) return 0;
   const date = new Date(String(value));
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function formatChemicalText(value: string) {
+  return value
+    .replace(/FADH2/g, "FADH₂")
+    .replace(/H2O/g, "H₂O")
+    .replace(/O2/g, "O₂")
+    .replace(/CO2/g, "CO₂")
+    .replace(/NAD\+/g, "NAD⁺")
+    .replace(/H\+/g, "H⁺")
+    .replace(/e-/g, "e⁻")
+    .replace(/e−/g, "e⁻");
 }
 
 function escapeXml(value: string) {
