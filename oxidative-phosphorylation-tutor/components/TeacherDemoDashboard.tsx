@@ -64,12 +64,12 @@ export function TeacherDemoDashboard() {
   }
 
   function downloadExcel() {
-    const html = buildExcelHtml(students, sessions, simulationLogs, chatLogs, countTags(chatLogs));
-    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel;charset=utf-8" });
+    const workbook = buildExcelWorkbook(students, sessions, simulationLogs, chatLogs, countTags(chatLogs));
+    const blob = new Blob(["\ufeff" + workbook], { type: "application/vnd.ms-excel;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "oxidative-phosphorylation-teacher-log.xls";
+    anchor.download = "산화적 인산화 교사용 대시보드.xls";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -345,27 +345,244 @@ function formatDate(value: unknown) {
   return date.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-function buildExcelHtml(students: RecordRow[], sessions: RecordRow[], simulationLogs: RecordRow[], chatLogs: RecordRow[], tagCounts: Array<[string, number]>) {
-  return "<html><head><meta charset='utf-8'><style>table{border-collapse:collapse;margin-bottom:24px}td,th{border:1px solid #999;padding:6px;vertical-align:top}th{background:#dff2ec}body{font-family:Arial,sans-serif}</style></head><body>" + section("Students", students) + section("Sessions", sessions) + section("Simulation Logs", simulationLogs) + section("Chat Logs", chatLogs) + section("Misconception Tags", tagCounts.map(([tag, count]) => ({ tag, count }))) + "</body></html>";
-}
+function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simulationLogs: RecordRow[], chatLogs: RecordRow[], tagCounts: Array<[string, number]>) {
+  const generatedAt = new Date();
+  const studentSummaries = buildStudentSummaries(students, sessions, simulationLogs, chatLogs);
+  const summaryRows: XmlRow[] = [];
 
-function section(title: string, rows: RecordRow[]) {
-  const records = rows.map((row) => flatten(row));
-  const headers = Array.from(new Set(records.flatMap((row) => Object.keys(row))));
-  if (records.length === 0) return "<h2>" + escapeHtml(title) + "</h2><p>No data</p>";
-  const head = headers.map((header) => "<th>" + escapeHtml(header) + "</th>").join("");
-  const body = records.map((row) => "<tr>" + headers.map((header) => "<td>" + escapeHtml(String(row[header] ?? "")) + "</td>").join("") + "</tr>").join("");
-  return "<h2>" + escapeHtml(title) + "</h2><table><thead><tr>" + head + "</tr></thead><tbody>" + body + "</tbody></table>";
-}
-
-function flatten(row: RecordRow) {
-  const output: Record<string, string> = {};
-  for (const [key, value] of Object.entries(row)) {
-    output[key] = typeof value === "object" && value !== null ? JSON.stringify(value) : String(value ?? "");
+  summaryRows.push([{ value: "산화적 인산화 교사용 대시보드", style: "title", mergeAcross: 9 }]);
+  summaryRows.push([{ value: "생성일", style: "label" }, { value: generatedAt.toLocaleString("ko-KR"), mergeAcross: 8 }]);
+  summaryRows.push([]);
+  summaryRows.push([{ value: "전체 요약", style: "section", mergeAcross: 9 }]);
+  summaryRows.push([
+    { value: "학생 수", style: "label" }, { value: students.length, type: "Number" },
+    { value: "학습 세션", style: "label" }, { value: sessions.length, type: "Number" },
+    { value: "시뮬레이션 실행", style: "label" }, { value: simulationLogs.filter((log) => String(log["event_type"] ?? "") === "simulation_run").length, type: "Number" },
+    { value: "AI 튜터 대화", style: "label" }, { value: chatLogs.length, type: "Number" }
+  ]);
+  summaryRows.push([]);
+  summaryRows.push([{ value: "학생별 학습 요약", style: "section", mergeAcross: 9 }]);
+  summaryRows.push(["학번", "이름", "학습 세션 수", "시뮬레이션 실행 수", "AI 대화 수", "오개념 태그", "최근 ATP", "최근 예측", "최근 활동일", "학생부 활용 문구"].map((value) => ({ value, style: "header" })));
+  for (const summary of studentSummaries) {
+    summaryRows.push([
+      { value: summary.number },
+      { value: summary.name },
+      { value: summary.sessionCount, type: "Number" },
+      { value: summary.simulationCount, type: "Number" },
+      { value: summary.chatCount, type: "Number" },
+      { value: summary.tags || "-" },
+      { value: summary.latestAtp || "-" },
+      { value: summary.latestPrediction || "-" },
+      { value: summary.latestDate || "-" },
+      { value: summary.activityComment, style: "wrap" }
+    ]);
   }
-  return output;
+  summaryRows.push([]);
+  summaryRows.push([{ value: "전체 주요 오개념 태그", style: "section", mergeAcross: 3 }]);
+  summaryRows.push([{ value: "태그", style: "header" }, { value: "빈도", style: "header" }]);
+  for (const [tag, count] of tagCounts) {
+    summaryRows.push([{ value: tag }, { value: count, type: "Number" }]);
+  }
+
+  const detailRows: XmlRow[] = [];
+  detailRows.push([{ value: "학생 로그", style: "title", mergeAcross: 10 }]);
+  detailRows.push([{ value: "학번", style: "header" }, { value: "이름", style: "header" }, { value: "학습 일시", style: "header" }, { value: "회차", style: "header" }, { value: "시뮬레이션 조건", style: "header" }, { value: "결과", style: "header" }, { value: "오개념 태그", style: "header" }, { value: "학생 예측", style: "header" }, { value: "학생 질문", style: "header" }, { value: "AI 튜터 메시지", style: "header" }, { value: "학생 활동 문구", style: "header" }]);
+
+  for (const summary of studentSummaries) {
+    if (summary.logs.length === 0 && summary.chats.length === 0) {
+      detailRows.push([
+        { value: summary.number }, { value: summary.name }, { value: "-" }, { value: "-" }, { value: "기록 없음" }, { value: "-" }, { value: summary.tags || "-" }, { value: "-" }, { value: "-" }, { value: "-" }, { value: summary.activityComment, style: "wrap" }
+      ]);
+      continue;
+    }
+    const grouped = buildStudentLogGroups(summary.logs, summary.chats);
+    for (const group of grouped) {
+      const pairs = pairChatLogs(group.chats);
+      const rowBase = [
+        { value: summary.number },
+        { value: summary.name },
+        { value: formatDate(group.log?.["created_at"] ?? group.chats[0]?.["created_at"]) },
+        { value: group.round ? String(group.round) + "회차" : "대화" },
+        { value: group.log ? formatCondition(asRecord(group.log["simulation_state"])) : "시뮬레이션 전 대화" },
+        { value: group.log ? formatResult(asRecord(group.log["simulation_result"])) : "-" },
+        { value: tagsFromLogs(group.chats) || summary.tags || "-" },
+        { value: group.log ? String(group.log["student_prediction"] ?? "") || "-" : "-" }
+      ];
+      if (pairs.length === 0) {
+        detailRows.push([...rowBase, { value: "-" }, { value: "-" }, { value: summary.activityComment, style: "wrap" }]);
+      } else {
+        pairs.forEach((pair, index) => {
+          detailRows.push([
+            ...(index === 0 ? rowBase : [{ value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }]),
+            { value: pair.question || "-", style: "wrap" },
+            { value: pair.answer || "-", style: "wrap" },
+            { value: index === 0 ? summary.activityComment : "", style: "wrap" }
+          ]);
+        });
+      }
+    }
+  }
+
+  return spreadsheetXml([
+    { name: "전체 요약", rows: summaryRows, widths: [70, 90, 90, 110, 110, 180, 120, 260, 140, 520] },
+    { name: "학생 로그", rows: detailRows, widths: [70, 90, 145, 70, 310, 250, 180, 300, 340, 460, 520] }
+  ]);
 }
 
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] ?? char);
+type XmlCell = { value: string | number; type?: "String" | "Number"; style?: string; mergeAcross?: number };
+type XmlRow = XmlCell[];
+
+type StudentSummary = {
+  id: string;
+  number: string;
+  name: string;
+  sessionIds: Set<string>;
+  sessionCount: number;
+  simulationCount: number;
+  chatCount: number;
+  tags: string;
+  latestAtp: string;
+  latestPrediction: string;
+  latestDate: string;
+  activityComment: string;
+  logs: RecordRow[];
+  chats: RecordRow[];
+};
+
+function buildStudentSummaries(students: RecordRow[], sessions: RecordRow[], simulationLogs: RecordRow[], chatLogs: RecordRow[]): StudentSummary[] {
+  return students.map((student) => {
+    const id = getId(student);
+    const studentSessions = sessions.filter((session) => String(session["student_id"] ?? "") === id);
+    const sessionIds = new Set(studentSessions.map((session) => getId(session)).filter(Boolean));
+    const logs = simulationLogs
+      .filter((log) => belongsToStudent(log, id, sessionIds) && String(log["event_type"] ?? "") === "simulation_run")
+      .sort((a, b) => timeValue(a["created_at"]) - timeValue(b["created_at"]));
+    const chats = chatLogs
+      .filter((log) => belongsToStudent(log, id, sessionIds))
+      .sort((a, b) => timeValue(a["created_at"]) - timeValue(b["created_at"]));
+    const latestLog = logs[logs.length - 1] ?? null;
+    const latestResult = asRecord(latestLog?.["simulation_result"]);
+    const tagSummary = countTags(chats).map(([tag, count]) => tag + "(" + String(count) + ")").join(", ");
+    const name = String(student["student_name"] ?? "").trim() || "이름 없음";
+    const number = String(student["student_number"] ?? "").trim();
+    const latestDate = latestLog ? formatDate(latestLog["created_at"]) : formatDate(student["updated_at"] ?? student["created_at"]);
+    const latestPrediction = latestLog ? String(latestLog["student_prediction"] ?? "") : "";
+    return {
+      id,
+      number,
+      name,
+      sessionIds,
+      sessionCount: studentSessions.length,
+      simulationCount: logs.length,
+      chatCount: chats.length,
+      tags: tagSummary,
+      latestAtp: latestResult ? String(latestResult["atpLabel"] ?? latestResult["atpEstimate"] ?? "") : "",
+      latestPrediction,
+      latestDate,
+      activityComment: buildActivityComment(name, logs, chats, tagSummary, latestPrediction),
+      logs,
+      chats
+    };
+  });
 }
+
+function buildActivityComment(name: string, logs: RecordRow[], chats: RecordRow[], tagSummary: string, latestPrediction: string) {
+  const simulationCount = logs.length;
+  const chatCount = chats.length;
+  const latestResult = asRecord(logs[logs.length - 1]?.["simulation_result"]);
+  const atp = latestResult ? String(latestResult["atpLabel"] ?? latestResult["atpEstimate"] ?? "") : "기록 없음";
+  const conceptText = tagSummary ? " 주요 점검 개념은 " + tagSummary + "로 나타남." : " 오개념 태그는 두드러지게 기록되지 않음.";
+  const predictionText = latestPrediction ? " 최근 예측에서 '" + trimText(latestPrediction, 80) + "'라고 서술함." : " 예측 기록은 추가 확인이 필요함.";
+  return name + " 학생은 산화적 인산화 시뮬레이션을 " + String(simulationCount) + "회 실행하며 조건 변화에 따른 ATP 생성과 전자 전달 결과를 탐구함. AI 튜터와 " + String(chatCount) + "회 상호작용하며 자신의 예측을 점검함. 최근 ATP 결과는 " + atp + "로 기록됨." + conceptText + predictionText;
+}
+
+function buildStudentLogGroups(logs: RecordRow[], chats: RecordRow[]) {
+  if (logs.length === 0) return [{ round: 0, log: null as RecordRow | null, chats }];
+  return logs.map((log, index) => {
+    const start = timeValue(log["created_at"]);
+    const next = logs[index + 1] ? timeValue(logs[index + 1]["created_at"]) : Number.POSITIVE_INFINITY;
+    const roundChats = chats.filter((chat) => {
+      const chatTime = timeValue(chat["created_at"]);
+      if (index === 0 && chatTime < start) return true;
+      return chatTime >= start && chatTime < next;
+    });
+    return { round: index + 1, log, chats: roundChats };
+  });
+}
+
+function pairChatLogs(logs: RecordRow[]) {
+  const pairs: Array<{ question: string; answer: string }> = [];
+  let pending = "";
+  for (const log of logs) {
+    const role = String(log["role"] ?? "student");
+    const message = String(log["message"] ?? "");
+    if (role === "assistant") {
+      pairs.push({ question: pending, answer: message });
+      pending = "";
+    } else {
+      if (pending) pairs.push({ question: pending, answer: "" });
+      pending = message;
+    }
+  }
+  if (pending) pairs.push({ question: pending, answer: "" });
+  return pairs;
+}
+
+function tagsFromLogs(logs: RecordRow[]) {
+  return countTags(logs).map(([tag, count]) => tag + "(" + String(count) + ")").join(", ");
+}
+
+function formatResult(result: RecordRow | null) {
+  if (!result) return "기록 없음";
+  const explanation = Array.isArray(result["explanation"]) ? (result["explanation"] as unknown[]).map(String).join(" ") : "";
+  return "ATP 생성 " + String(result["atpLabel"] ?? result["atpEstimate"] ?? "-") + ", H+ 기울기 " + String(result["protonGradientLevel"] ?? "-") + ", 산소 소비 " + String(result["oxygenConsumptionLevel"] ?? "-") + (explanation ? " / 해석: " + trimText(explanation, 420) : "");
+}
+
+function spreadsheetXml(sheets: Array<{ name: string; rows: XmlRow[]; widths: number[] }>) {
+  return "<?xml version=\"1.0\"?>" +
+    "<?mso-application progid=\"Excel.Sheet\"?>" +
+    "<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:html=\"http://www.w3.org/TR/REC-html40\">" +
+    "<Styles>" +
+    "<Style ss:ID=\"Default\"><Alignment ss:Vertical=\"Top\"/><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"10\"/></Style>" +
+    "<Style ss:ID=\"title\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"16\" ss:Bold=\"1\" ss:Color=\"#122022\"/><Interior ss:Color=\"#DFF2EC\" ss:Pattern=\"Solid\"/><Alignment ss:Vertical=\"Center\"/></Style>" +
+    "<Style ss:ID=\"section\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"12\" ss:Bold=\"1\" ss:Color=\"#176B87\"/><Interior ss:Color=\"#F1FAF7\" ss:Pattern=\"Solid\"/></Style>" +
+    "<Style ss:ID=\"header\"><Font ss:FontName=\"Malgun Gothic\" ss:Bold=\"1\" ss:Color=\"#FFFFFF\"/><Interior ss:Color=\"#176B87\" ss:Pattern=\"Solid\"/><Alignment ss:Vertical=\"Center\" ss:WrapText=\"1\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#0F4F63\"/></Borders></Style>" +
+    "<Style ss:ID=\"label\"><Font ss:FontName=\"Malgun Gothic\" ss:Bold=\"1\"/><Interior ss:Color=\"#EEF7F3\" ss:Pattern=\"Solid\"/></Style>" +
+    "<Style ss:ID=\"wrap\"><Alignment ss:Vertical=\"Top\" ss:WrapText=\"1\"/></Style>" +
+    "</Styles>" +
+    sheets.map((sheet) => worksheetXml(sheet.name, sheet.rows, sheet.widths)).join("") +
+    "</Workbook>";
+}
+
+function worksheetXml(name: string, rows: XmlRow[], widths: number[]) {
+  return "<Worksheet ss:Name=\"" + escapeXml(name) + "\"><Table>" +
+    widths.map((width) => "<Column ss:Width=\"" + String(width) + "\"/>").join("") +
+    rows.map(rowXml).join("") +
+    "</Table><WorksheetOptions xmlns=\"urn:schemas-microsoft-com:office:excel\"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>2</SplitHorizontal><TopRowBottomPane>2</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions></Worksheet>";
+}
+
+function rowXml(row: XmlRow) {
+  if (row.length === 0) return "<Row/>";
+  return "<Row>" + row.map(cellXml).join("") + "</Row>";
+}
+
+function cellXml(cell: XmlCell) {
+  const type = cell.type ?? (typeof cell.value === "number" ? "Number" : "String");
+  const attrs = [cell.style ? "ss:StyleID=\"" + cell.style + "\"" : "", cell.mergeAcross ? "ss:MergeAcross=\"" + String(cell.mergeAcross) + "\"" : ""].filter(Boolean).join(" ");
+  return "<Cell" + (attrs ? " " + attrs : "") + "><Data ss:Type=\"" + type + "\">" + escapeXml(trimText(String(cell.value ?? ""), 32000)) + "</Data></Cell>";
+}
+
+function trimText(value: string, max: number) {
+  return value.length > max ? value.slice(0, max - 1) + "…" : value;
+}
+
+function timeValue(value: unknown) {
+  if (!value) return 0;
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+function escapeXml(value: string) {
+  return value.replace(/[&<>\"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;" })[char] ?? char);
+}
+
