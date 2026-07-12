@@ -19,6 +19,18 @@ interface LearningLogPanelProps {
   chatMessages: ChatMessage[];
 }
 
+interface DialoguePair {
+  question: string;
+  answer: string;
+}
+
+interface RoundGroup {
+  round: number;
+  log: SessionSimulationLog;
+  chats: ChatMessage[];
+  pairs: DialoguePair[];
+}
+
 export function LearningLogPanel({ student, sessionLogs, chatMessages }: LearningLogPanelProps) {
   const latestLog = sessionLogs[0] ?? null;
   const tutorReplies = chatMessages.filter((message) => message.role === "assistant");
@@ -43,7 +55,7 @@ export function LearningLogPanel({ student, sessionLogs, chatMessages }: Learnin
           <span className="rounded-md bg-amber/15 p-2 text-amber"><ClipboardList size={20} /></span>
           <div>
             <h2 className="text-lg font-bold text-ink">학습 로그</h2>
-            <p className="text-sm text-slate-500">이번 세션의 시뮬레이션과 AI 튜터 대화를 PDF로 정리합니다.</p>
+            <p className="text-sm text-slate-500">회차별 시뮬레이션 결과와 AI 튜터 대화를 PDF로 정리합니다.</p>
           </div>
         </div>
         <button type="button" onClick={downloadSummary} className="inline-flex items-center gap-2 rounded-md bg-marine px-3 py-2 text-sm font-semibold text-white transition hover:bg-marine/90">
@@ -62,7 +74,7 @@ export function LearningLogPanel({ student, sessionLogs, chatMessages }: Learnin
       </div>
       <div className="mt-4 rounded-md bg-mint/10 p-4 text-sm leading-6 text-slate-700">
         <p className="mb-1 font-bold text-mint">다운로드 내용</p>
-        <p><ChemicalText text="PDF에는 이번 세션에서 실행한 시뮬레이션 조건과 결과, 학생 예측, AI 튜터 답변이 함께 정리됩니다. NADH와 FADH2 잔량은 포함하지 않습니다." /></p>
+        <p><ChemicalText text="PDF에는 회차별 조건, 결과, 해석, 그리고 해당 회차 뒤에 이어진 학생 질문과 AI 튜터 답변이 표로 정리됩니다." /></p>
       </div>
     </section>
   );
@@ -85,7 +97,8 @@ async function buildSummaryPdf(student: StudentProfile, sessionLogs: SessionSimu
 async function renderPages(student: StudentProfile, sessionLogs: SessionSimulationLog[], chatMessages: ChatMessage[], now: Date) {
   const width = 1240;
   const height = 1754;
-  const margin = 82;
+  const margin = 74;
+  const contentWidth = width - margin * 2;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -101,7 +114,7 @@ async function renderPages(student: StudentProfile, sessionLogs: SessionSimulati
     ctx.fillStyle = "#eef7f3";
     ctx.fillRect(0, 0, width, height);
     ctx.fillStyle = "#ffffff";
-    roundRect(ctx, 48, 48, width - 96, height - 96, 24);
+    roundRect(ctx, 44, 44, width - 88, height - 88, 24);
     ctx.fill();
     ctx.strokeStyle = "#dbe5e2";
     ctx.lineWidth = 2;
@@ -111,101 +124,262 @@ async function renderPages(student: StudentProfile, sessionLogs: SessionSimulati
 
   function finishPage() {
     ctx.fillStyle = "#64748b";
-    ctx.font = "24px Malgun Gothic, Apple SD Gothic Neo, sans-serif";
-    ctx.fillText("© Copyright 2026 All rights reserved by BioLogist", margin, height - 72);
+    ctx.font = font(22, "normal");
+    ctx.fillText("© Copyright 2026 All rights reserved by BioLogist", margin, height - 68);
     ctx.textAlign = "right";
-    ctx.fillText(String(pageNumber), width - margin, height - 72);
+    ctx.fillText(String(pageNumber), width - margin, height - 68);
     ctx.textAlign = "left";
     pages.push({ data: canvas.toDataURL("image/jpeg", 0.92), width, height });
     pageNumber += 1;
   }
 
   function ensureSpace(space: number) {
-    if (y + space < height - 130) return;
+    if (y + space < height - 126) return;
     finishPage();
     resetPage();
   }
 
   function addText(text: string, size: number, color: string, weight: "normal" | "bold" = "normal", lineGap = 1.45) {
-    ctx.font = weight + " " + String(size) + "px Malgun Gothic, Apple SD Gothic Neo, sans-serif";
+    ctx.font = font(size, weight);
     ctx.fillStyle = color;
-    const lines = wrapText(ctx, text, width - margin * 2);
-    ensureSpace(lines.length * size * lineGap + 12);
+    const lines = wrapText(ctx, text, contentWidth);
+    ensureSpace(lines.length * size * lineGap + 16);
     for (const line of lines) {
       ctx.fillText(line, margin, y);
       y += size * lineGap;
     }
   }
 
-  function addSection(title: string) {
-    ensureSpace(72);
-    y += 22;
-    addText(title, 34, "#176b87", "bold", 1.3);
-    y += 8;
+  function addRoundHeader(group: RoundGroup) {
+    ensureSpace(86);
+    y += 18;
+    ctx.fillStyle = "#176b87";
+    roundRect(ctx, margin, y, contentWidth, 58, 12);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = font(28, "bold");
+    ctx.fillText(String(group.round) + "회차 시뮬레이션", margin + 24, y + 38);
+    ctx.textAlign = "right";
+    ctx.font = font(21, "normal");
+    ctx.fillText(formatDate(group.log.created_at), margin + contentWidth - 24, y + 37);
+    ctx.textAlign = "left";
+    y += 78;
   }
 
-  function addCard(lines: string[]) {
-    const startY = y;
-    const lineHeight = 34;
-    const wrapped = lines.flatMap((line) => wrapText(ctx, line, width - margin * 2 - 44));
-    ensureSpace(wrapped.length * lineHeight + 54);
+  function addSubTitle(title: string) {
+    ensureSpace(48);
+    ctx.fillStyle = "#122022";
+    ctx.font = font(25, "bold");
+    ctx.fillText(title, margin, y);
+    y += 38;
+  }
+
+  function drawKeyValueTable(rows: Array<{ label: string; value: string }>) {
+    const labelWidth = 168;
+    const valueWidth = contentWidth - labelWidth;
+    for (const row of rows) {
+      ctx.font = font(22, "normal");
+      const allLines = wrapText(ctx, row.value, valueWidth - 34);
+      let start = 0;
+      let firstChunk = true;
+      while (start < allLines.length) {
+        let available = height - 132 - y;
+        if (available < 92) {
+          finishPage();
+          resetPage();
+          available = height - 132 - y;
+        }
+        const maxLines = Math.max(1, Math.floor((available - 28) / 30));
+        const chunk = allLines.slice(start, start + maxLines);
+        const rowHeight = Math.max(64, chunk.length * 30 + 30);
+        ctx.fillStyle = "#e8f5f1";
+        ctx.fillRect(margin, y, labelWidth, rowHeight);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(margin + labelWidth, y, valueWidth, rowHeight);
+        ctx.strokeStyle = "#cbdad6";
+        ctx.strokeRect(margin, y, contentWidth, rowHeight);
+        ctx.beginPath();
+        ctx.moveTo(margin + labelWidth, y);
+        ctx.lineTo(margin + labelWidth, y + rowHeight);
+        ctx.stroke();
+        ctx.fillStyle = "#176b87";
+        ctx.font = font(22, "bold");
+        ctx.fillText(firstChunk ? row.label : row.label + " 계속", margin + 18, y + 39);
+        ctx.fillStyle = "#334155";
+        ctx.font = font(22, "normal");
+        let textY = y + 39;
+        for (const line of chunk) {
+          ctx.fillText(line, margin + labelWidth + 18, textY);
+          textY += 30;
+        }
+        y += rowHeight;
+        start += chunk.length;
+        firstChunk = false;
+      }
+    }
+    y += 28;
+  }
+
+  function drawDialogueTable(pairs: DialoguePair[], roundLabel: string) {
+    if (pairs.length === 0) {
+      drawNote("이 회차 이후 기록된 AI 튜터 대화가 없습니다.");
+      return;
+    }
+    const questionWidth = Math.floor(contentWidth * 0.42);
+    const answerWidth = contentWidth - questionWidth;
+
+    function drawHeader() {
+      ensureSpace(58);
+      ctx.fillStyle = "#122022";
+      ctx.fillRect(margin, y, contentWidth, 48);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = font(22, "bold");
+      ctx.fillText("학생 질문·요청", margin + 18, y + 32);
+      ctx.fillText("AI 튜터 답변", margin + questionWidth + 18, y + 32);
+      y += 48;
+    }
+
+    drawHeader();
+    for (const pair of pairs) {
+      ctx.font = font(21, "normal");
+      const qLines = wrapText(ctx, pair.question || "질문 기록 없음", questionWidth - 34);
+      const aLines = wrapText(ctx, pair.answer || "답변 기록 없음", answerWidth - 34);
+      let qStart = 0;
+      let aStart = 0;
+      let firstChunk = true;
+      while (qStart < qLines.length || aStart < aLines.length) {
+        let available = height - 132 - y;
+        if (available < 110) {
+          finishPage();
+          resetPage();
+          addText(roundLabel + " 대화 계속", 25, "#176b87", "bold", 1.25);
+          drawHeader();
+          available = height - 132 - y;
+        }
+        const maxLines = Math.max(1, Math.floor((available - 34) / 30));
+        const qChunk = qLines.slice(qStart, qStart + maxLines);
+        const aChunk = aLines.slice(aStart, aStart + maxLines);
+        const rowLines = Math.max(qChunk.length, aChunk.length, 1);
+        const rowHeight = Math.max(72, rowLines * 30 + 34);
+        ctx.fillStyle = firstChunk ? "#ffffff" : "#fbfdfc";
+        ctx.fillRect(margin, y, contentWidth, rowHeight);
+        ctx.strokeStyle = "#cbdad6";
+        ctx.strokeRect(margin, y, contentWidth, rowHeight);
+        ctx.beginPath();
+        ctx.moveTo(margin + questionWidth, y);
+        ctx.lineTo(margin + questionWidth, y + rowHeight);
+        ctx.stroke();
+        ctx.fillStyle = "#334155";
+        ctx.font = font(21, "normal");
+        let qY = y + 39;
+        for (const line of qChunk) {
+          ctx.fillText(line, margin + 18, qY);
+          qY += 30;
+        }
+        let aY = y + 39;
+        for (const line of aChunk) {
+          ctx.fillText(line, margin + questionWidth + 18, aY);
+          aY += 30;
+        }
+        y += rowHeight;
+        qStart += qChunk.length;
+        aStart += aChunk.length;
+        firstChunk = false;
+      }
+    }
+    y += 30;
+  }
+
+  function drawNote(text: string) {
+    ctx.font = font(22, "normal");
+    const lines = wrapText(ctx, text, contentWidth - 42);
+    const boxHeight = Math.max(68, lines.length * 30 + 34);
+    ensureSpace(boxHeight + 22);
     ctx.fillStyle = "#f7fbfb";
-    roundRect(ctx, margin, y - 4, width - margin * 2, wrapped.length * lineHeight + 34, 14);
+    roundRect(ctx, margin, y, contentWidth, boxHeight, 12);
     ctx.fill();
     ctx.strokeStyle = "#d8e4e2";
     ctx.stroke();
-    y += 26;
-    ctx.font = "24px Malgun Gothic, Apple SD Gothic Neo, sans-serif";
-    ctx.fillStyle = "#334155";
-    for (const line of wrapped) {
-      ctx.fillText(line, margin + 22, y);
-      y += lineHeight;
+    ctx.fillStyle = "#64748b";
+    let textY = y + 40;
+    for (const line of lines) {
+      ctx.fillText(line, margin + 22, textY);
+      textY += 30;
     }
-    y = Math.max(y + 18, startY + wrapped.length * lineHeight + 52);
+    y += boxHeight + 24;
   }
 
   resetPage();
   addText("산화적 인산화 학습 정리", 46, "#122022", "bold", 1.2);
-  addText(student.student_number + " " + student.student_name + " · " + now.toLocaleString("ko-KR"), 24, "#64748b", "normal", 1.5);
-  addText("이번 PDF는 현재 학습 세션에서 실행한 시뮬레이션 결과와 AI 튜터 대화를 함께 정리한 파일입니다.", 26, "#334155");
+  addText(student.student_number + " " + student.student_name + " · " + now.toLocaleString("ko-KR"), 24, "#64748b", "normal", 1.45);
+  addText("이번 정리 파일은 회차별 시뮬레이션 결과와 그 뒤에 이어진 AI 튜터 대화를 함께 묶어 정리합니다.", 25, "#334155", "normal", 1.45);
+  y += 20;
 
-  addSection("세션 요약");
-  addCard([
-    "시뮬레이션 실행 횟수: " + String(sessionLogs.length),
-    "AI 튜터 답변 수: " + String(chatMessages.filter((message) => message.role === "assistant").length),
-    "정리 기준: 새 세션으로 시작한 뒤 이 화면에서 수행한 활동"
-  ]);
-
-  addSection("시뮬레이션 결과");
-  if (sessionLogs.length === 0) {
-    addCard(["아직 이 세션에서 실행한 시뮬레이션 기록이 없습니다."]);
+  const groups = buildRoundGroups(sessionLogs, chatMessages);
+  if (groups.length === 0) {
+    addSubTitle("시뮬레이션 결과");
+    drawNote("아직 이 세션에서 실행한 시뮬레이션 기록이 없습니다. 시뮬레이션을 실행한 뒤 PDF를 다시 내려받으면 회차별 표가 만들어집니다.");
   } else {
-    sessionLogs.slice().reverse().forEach((log, index) => {
-      addCard([
-        String(index + 1) + "회차 · " + formatDate(log.created_at),
-        "조건: NADH " + String(log.state.nadh) + ", FADH2 " + String(log.state.fadh2) + ", 산소 " + oxygenLabel(log.state.oxygen) + ", ADP " + adpLabel(log.state.adp) + ", " + treatmentLabels[log.state.treatment],
-        "결과: ATP 생성 " + log.result.atpLabel + ", H+ 기울기 " + log.result.protonGradientLevel + ", 산소 소비 " + log.result.oxygenConsumptionLevel,
-        "학생 예측: " + (log.prediction || "예측을 입력하지 않았습니다."),
-        "해석: " + log.result.explanation.join(" ")
+    for (const group of groups) {
+      addRoundHeader(group);
+      addSubTitle("시뮬레이션 결과 표");
+      drawKeyValueTable([
+        { label: "조건", value: conditionSummary(group.log.state) },
+        { label: "결과", value: resultSummary(group.log.result) },
+        { label: "학생 예측", value: group.log.prediction || "예측을 입력하지 않았습니다." },
+        { label: "해석", value: group.log.result.explanation.join(" ") }
       ]);
-    });
-  }
-
-  addSection("AI 튜터 대화");
-  if (chatMessages.length === 0) {
-    addCard(["아직 AI 튜터 대화 기록이 없습니다."]);
-  } else {
-    chatMessages.forEach((message) => {
-      addCard([
-        (message.role === "assistant" ? "AI 튜터" : "학생") + " · " + formatDate(message.created_at),
-        message.message,
-        message.misconception_tags?.length ? "태그: " + message.misconception_tags.join(", ") : ""
-      ].filter(Boolean));
-    });
+      addSubTitle("AI 튜터 대화 기록");
+      drawDialogueTable(group.pairs, String(group.round) + "회차");
+    }
   }
 
   finishPage();
   return pages;
+}
+
+function buildRoundGroups(sessionLogs: SessionSimulationLog[], chatMessages: ChatMessage[]): RoundGroup[] {
+  const logs = sessionLogs.slice().sort((a, b) => timeValue(a.created_at) - timeValue(b.created_at));
+  const chats = chatMessages.slice().sort((a, b) => timeValue(a.created_at) - timeValue(b.created_at));
+  return logs.map((log, index) => {
+    const start = timeValue(log.created_at);
+    const next = logs[index + 1] ? timeValue(logs[index + 1].created_at) : Number.POSITIVE_INFINITY;
+    const roundChats = chats.filter((message) => {
+      const messageTime = timeValue(message.created_at);
+      if (index === 0 && messageTime < start) return true;
+      return messageTime >= start && messageTime < next;
+    });
+    return {
+      round: index + 1,
+      log,
+      chats: roundChats,
+      pairs: pairDialogues(roundChats)
+    };
+  });
+}
+
+function pairDialogues(messages: ChatMessage[]): DialoguePair[] {
+  const pairs: DialoguePair[] = [];
+  let pendingQuestion = "";
+  for (const message of messages) {
+    if (message.role === "student") {
+      if (pendingQuestion) pairs.push({ question: pendingQuestion, answer: "" });
+      pendingQuestion = message.message;
+    } else {
+      pairs.push({ question: pendingQuestion, answer: message.message });
+      pendingQuestion = "";
+    }
+  }
+  if (pendingQuestion) pairs.push({ question: pendingQuestion, answer: "" });
+  return pairs;
+}
+
+function conditionSummary(state: SimulationState) {
+  return "NADH " + String(state.nadh) + "개, FADH2 " + String(state.fadh2) + "개, 산소 " + oxygenLabel(state.oxygen) + ", ADP " + adpLabel(state.adp) + ", 처리 조건 " + treatmentLabels[state.treatment];
+}
+
+function resultSummary(result: SimulationResult) {
+  return "ATP 생성 " + result.atpLabel + ", H+ 기울기 " + result.protonGradientLevel + ", 산소 소비 " + result.oxygenConsumptionLevel;
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
@@ -252,7 +426,7 @@ function createPdfFromJpegs(pages: { data: string; width: number; height: number
     return objects.length;
   }
 
-  const catalogId = addObject("<< /Type /Catalog /Pages 2 0 R >>");
+  addObject("<< /Type /Catalog /Pages 2 0 R >>");
   const pagesId = addObject("");
   const pageIds: number[] = [];
 
@@ -266,7 +440,6 @@ function createPdfFromJpegs(pages: { data: string; width: number; height: number
   });
 
   objects[pagesId - 1] = "<< /Type /Pages /Kids [" + pageIds.map((id) => String(id) + " 0 R").join(" ") + "] /Count " + pageIds.length + " >>";
-  void catalogId;
 
   let pdf = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
   const offsets = [0];
@@ -285,8 +458,7 @@ function createPdfFromJpegs(pages: { data: string; width: number; height: number
 
 function dataUrlToBinary(dataUrl: string) {
   const base64 = dataUrl.split(",")[1] ?? "";
-  const binary = atob(base64);
-  return binary;
+  return atob(base64);
 }
 
 function binaryStringToUint8Array(binary: string) {
@@ -304,6 +476,12 @@ function formatDate(value?: string) {
   return date.toLocaleString("ko-KR", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
+function timeValue(value?: string) {
+  if (!value) return 0;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
 function oxygenLabel(value: SimulationState["oxygen"]) {
   if (value === "sufficient") return "충분함";
   if (value === "low") return "부족함";
@@ -316,4 +494,8 @@ function adpLabel(value: SimulationState["adp"]) {
 
 function sanitizeFileName(value: string) {
   return value.replace(/[\\/:*?"<>|]/g, "_");
+}
+
+function font(size: number, weight: "normal" | "bold") {
+  return weight + " " + String(size) + "px Malgun Gothic, Apple SD Gothic Neo, Arial, sans-serif";
 }
