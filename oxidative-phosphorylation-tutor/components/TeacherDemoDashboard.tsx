@@ -350,10 +350,10 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
   const studentSummaries = buildStudentSummaries(students, sessions, simulationLogs, chatLogs);
   const summaryRows: XmlRow[] = [];
 
-  summaryRows.push([{ value: "산화적 인산화 교사용 대시보드", style: "title", mergeAcross: 9 }]);
-  summaryRows.push([{ value: "생성일", style: "label" }, { value: generatedAt.toLocaleString("ko-KR"), mergeAcross: 8 }]);
+  summaryRows.push([{ value: "산화적 인산화 교사용 대시보드", style: "title", mergeAcross: 7 }]);
+  summaryRows.push([{ value: "생성일", style: "label" }, { value: generatedAt.toLocaleString("ko-KR"), mergeAcross: 6 }]);
   summaryRows.push([]);
-  summaryRows.push([{ value: "전체 요약", style: "section", mergeAcross: 9 }]);
+  summaryRows.push([{ value: "전체 요약", style: "section", mergeAcross: 7 }]);
   summaryRows.push([
     { value: "학생 수", style: "label" }, { value: students.length, type: "Number" },
     { value: "학습 세션", style: "label" }, { value: sessions.length, type: "Number" },
@@ -361,8 +361,8 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
     { value: "AI 튜터 대화", style: "label" }, { value: chatLogs.length, type: "Number" }
   ]);
   summaryRows.push([]);
-  summaryRows.push([{ value: "학생별 학습 요약", style: "section", mergeAcross: 9 }]);
-  summaryRows.push(["학번", "이름", "학습 세션 수", "시뮬레이션 실행 수", "AI 대화 수", "오개념 태그", "최근 ATP", "최근 예측", "최근 활동일", "학생부 활용 문구"].map((value) => ({ value, style: "header" })));
+  summaryRows.push([{ value: "학생별 학습 요약", style: "section", mergeAcross: 6 }]);
+  summaryRows.push(["학번", "이름", "학습 세션 수", "시뮬레이션 실행 수", "AI 대화 수", "오개념 태그", "최근 활동일"].map((value) => ({ value, style: "header" })));
   for (const summary of studentSummaries) {
     summaryRows.push([
       { value: summary.number },
@@ -370,18 +370,15 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
       { value: summary.sessionCount, type: "Number" },
       { value: summary.simulationCount, type: "Number" },
       { value: summary.chatCount, type: "Number" },
-      { value: summary.tags || "-" },
-      { value: summary.latestAtp || "-" },
-      { value: summary.latestPrediction || "-" },
-      { value: summary.latestDate || "-" },
-      { value: summary.activityComment, style: "wrap" }
+      { value: summary.tags || "-", style: "wrap" },
+      { value: summary.latestDate || "-" }
     ]);
   }
   summaryRows.push([]);
-  summaryRows.push([{ value: "전체 주요 오개념 태그", style: "section", mergeAcross: 3 }]);
-  summaryRows.push([{ value: "태그", style: "header" }, { value: "빈도", style: "header" }]);
+  summaryRows.push([{ value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "전체 주요 오개념 태그", style: "section", mergeAcross: 1 }]);
+  summaryRows.push([{ value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "오개념 태그", style: "header" }, { value: "빈도", style: "header" }]);
   for (const [tag, count] of tagCounts) {
-    summaryRows.push([{ value: tag }, { value: count, type: "Number" }]);
+    summaryRows.push([{ value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: tag, style: "wrap" }, { value: count, type: "Number" }]);
   }
 
   const detailRows: XmlRow[] = [];
@@ -391,7 +388,7 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
   for (const summary of studentSummaries) {
     if (summary.logs.length === 0 && summary.chats.length === 0) {
       detailRows.push([
-        { value: summary.number }, { value: summary.name }, { value: "-" }, { value: "-" }, { value: "기록 없음" }, { value: "-" }, { value: summary.tags || "-" }, { value: "-" }, { value: "-" }, { value: "-" }, { value: summary.activityComment, style: "wrap" }
+        { value: summary.number }, { value: summary.name }, { value: "-" }, { value: "-" }, { value: "기록 없음" }, { value: "-" }, { value: summary.tags || "-", style: "wrap" }, { value: "-" }, { value: "-" }, { value: "-" }, { value: "", style: "wrap" }
       ]);
       continue;
     }
@@ -403,20 +400,20 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
         { value: summary.name },
         { value: formatDate(group.log?.["created_at"] ?? group.chats[0]?.["created_at"]) },
         { value: group.round ? String(group.round) + "회차" : "대화" },
-        { value: group.log ? formatCondition(asRecord(group.log["simulation_state"])) : "시뮬레이션 전 대화" },
-        { value: group.log ? formatResult(asRecord(group.log["simulation_result"])) : "-" },
-        { value: tagsFromLogs(group.chats) || summary.tags || "-" },
-        { value: group.log ? String(group.log["student_prediction"] ?? "") || "-" : "-" }
+        { value: group.log ? formatCondition(asRecord(group.log["simulation_state"])) : "시뮬레이션 전 대화", style: "wrap" },
+        { value: group.log ? formatResult(asRecord(group.log["simulation_result"])) : "-", style: "wrap" },
+        { value: tagsFromLogs(group.chats) || summary.tags || "-", style: "wrap" },
+        { value: group.log ? String(group.log["student_prediction"] ?? "") || "-" : "-", style: "wrap" }
       ];
       if (pairs.length === 0) {
-        detailRows.push([...rowBase, { value: "-" }, { value: "-" }, { value: summary.activityComment, style: "wrap" }]);
+        detailRows.push([...rowBase, { value: "-" }, { value: "-" }, { value: "", style: "wrap" }]);
       } else {
         pairs.forEach((pair, index) => {
           detailRows.push([
             ...(index === 0 ? rowBase : [{ value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }, { value: "" }]),
             { value: pair.question || "-", style: "wrap" },
             { value: pair.answer || "-", style: "wrap" },
-            { value: index === 0 ? summary.activityComment : "", style: "wrap" }
+            { value: "", style: "wrap" }
           ]);
         });
       }
@@ -424,8 +421,8 @@ function buildExcelWorkbook(students: RecordRow[], sessions: RecordRow[], simula
   }
 
   return spreadsheetXml([
-    { name: "전체 요약", rows: summaryRows, widths: [70, 90, 90, 110, 110, 180, 120, 260, 140, 520] },
-    { name: "학생 로그", rows: detailRows, widths: [70, 90, 145, 70, 310, 250, 180, 300, 340, 460, 520] }
+    { name: "전체 요약", rows: summaryRows, widths: [70, 90, 110, 125, 95, 430, 150, 90] },
+    { name: "학생 로그", rows: detailRows, widths: [70, 90, 145, 70, 330, 280, 220, 320, 360, 480, 520] }
   ]);
 }
 
@@ -441,10 +438,7 @@ type StudentSummary = {
   simulationCount: number;
   chatCount: number;
   tags: string;
-  latestAtp: string;
-  latestPrediction: string;
   latestDate: string;
-  activityComment: string;
   logs: RecordRow[];
   chats: RecordRow[];
 };
@@ -461,12 +455,10 @@ function buildStudentSummaries(students: RecordRow[], sessions: RecordRow[], sim
       .filter((log) => belongsToStudent(log, id, sessionIds))
       .sort((a, b) => timeValue(a["created_at"]) - timeValue(b["created_at"]));
     const latestLog = logs[logs.length - 1] ?? null;
-    const latestResult = asRecord(latestLog?.["simulation_result"]);
     const tagSummary = countTags(chats).map(([tag, count]) => tag + "(" + String(count) + ")").join(", ");
     const name = String(student["student_name"] ?? "").trim() || "이름 없음";
     const number = String(student["student_number"] ?? "").trim();
     const latestDate = latestLog ? formatDate(latestLog["created_at"]) : formatDate(student["updated_at"] ?? student["created_at"]);
-    const latestPrediction = latestLog ? String(latestLog["student_prediction"] ?? "") : "";
     return {
       id,
       number,
@@ -476,24 +468,11 @@ function buildStudentSummaries(students: RecordRow[], sessions: RecordRow[], sim
       simulationCount: logs.length,
       chatCount: chats.length,
       tags: tagSummary,
-      latestAtp: latestResult ? String(latestResult["atpLabel"] ?? latestResult["atpEstimate"] ?? "") : "",
-      latestPrediction,
       latestDate,
-      activityComment: buildActivityComment(name, logs, chats, tagSummary, latestPrediction),
       logs,
       chats
     };
   });
-}
-
-function buildActivityComment(name: string, logs: RecordRow[], chats: RecordRow[], tagSummary: string, latestPrediction: string) {
-  const simulationCount = logs.length;
-  const chatCount = chats.length;
-  const latestResult = asRecord(logs[logs.length - 1]?.["simulation_result"]);
-  const atp = latestResult ? String(latestResult["atpLabel"] ?? latestResult["atpEstimate"] ?? "") : "기록 없음";
-  const conceptText = tagSummary ? " 주요 점검 개념은 " + tagSummary + "로 나타남." : " 오개념 태그는 두드러지게 기록되지 않음.";
-  const predictionText = latestPrediction ? " 최근 예측에서 '" + trimText(latestPrediction, 80) + "'라고 서술함." : " 예측 기록은 추가 확인이 필요함.";
-  return name + " 학생은 산화적 인산화 시뮬레이션을 " + String(simulationCount) + "회 실행하며 조건 변화에 따른 ATP 생성과 전자 전달 결과를 탐구함. AI 튜터와 " + String(chatCount) + "회 상호작용하며 자신의 예측을 점검함. 최근 ATP 결과는 " + atp + "로 기록됨." + conceptText + predictionText;
 }
 
 function buildStudentLogGroups(logs: RecordRow[], chats: RecordRow[]) {
@@ -544,10 +523,10 @@ function spreadsheetXml(sheets: Array<{ name: string; rows: XmlRow[]; widths: nu
     "<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:html=\"http://www.w3.org/TR/REC-html40\">" +
     "<Styles>" +
     "<Style ss:ID=\"Default\"><Alignment ss:Vertical=\"Top\"/><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"10\"/></Style>" +
-    "<Style ss:ID=\"title\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"16\" ss:Bold=\"1\" ss:Color=\"#122022\"/><Interior ss:Color=\"#DFF2EC\" ss:Pattern=\"Solid\"/><Alignment ss:Vertical=\"Center\"/></Style>" +
-    "<Style ss:ID=\"section\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"12\" ss:Bold=\"1\" ss:Color=\"#176B87\"/><Interior ss:Color=\"#F1FAF7\" ss:Pattern=\"Solid\"/></Style>" +
+    "<Style ss:ID=\"title\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"16\" ss:Bold=\"1\" ss:Color=\"#122022\"/><Interior ss:Color=\"#DFF2EC\" ss:Pattern=\"Solid\"/><Alignment ss:Vertical=\"Center\" ss:WrapText=\"1\"/></Style>" +
+    "<Style ss:ID=\"section\"><Font ss:FontName=\"Malgun Gothic\" ss:Size=\"12\" ss:Bold=\"1\" ss:Color=\"#176B87\"/><Interior ss:Color=\"#F1FAF7\" ss:Pattern=\"Solid\"/><Alignment ss:WrapText=\"1\"/></Style>" +
     "<Style ss:ID=\"header\"><Font ss:FontName=\"Malgun Gothic\" ss:Bold=\"1\" ss:Color=\"#FFFFFF\"/><Interior ss:Color=\"#176B87\" ss:Pattern=\"Solid\"/><Alignment ss:Vertical=\"Center\" ss:WrapText=\"1\"/><Borders><Border ss:Position=\"Bottom\" ss:LineStyle=\"Continuous\" ss:Weight=\"1\" ss:Color=\"#0F4F63\"/></Borders></Style>" +
-    "<Style ss:ID=\"label\"><Font ss:FontName=\"Malgun Gothic\" ss:Bold=\"1\"/><Interior ss:Color=\"#EEF7F3\" ss:Pattern=\"Solid\"/></Style>" +
+    "<Style ss:ID=\"label\"><Font ss:FontName=\"Malgun Gothic\" ss:Bold=\"1\"/><Interior ss:Color=\"#EEF7F3\" ss:Pattern=\"Solid\"/><Alignment ss:WrapText=\"1\"/></Style>" +
     "<Style ss:ID=\"wrap\"><Alignment ss:Vertical=\"Top\" ss:WrapText=\"1\"/></Style>" +
     "</Styles>" +
     sheets.map((sheet) => worksheetXml(sheet.name, sheet.rows, sheet.widths)).join("") +
@@ -563,7 +542,7 @@ function worksheetXml(name: string, rows: XmlRow[], widths: number[]) {
 
 function rowXml(row: XmlRow) {
   if (row.length === 0) return "<Row/>";
-  return "<Row>" + row.map(cellXml).join("") + "</Row>";
+  return "<Row ss:AutoFitHeight=\"1\">" + row.map(cellXml).join("") + "</Row>";
 }
 
 function cellXml(cell: XmlCell) {
